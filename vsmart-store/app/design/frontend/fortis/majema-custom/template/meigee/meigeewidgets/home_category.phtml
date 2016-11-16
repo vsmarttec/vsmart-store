@@ -1,0 +1,37 @@
+<?php
+$_productCollection = $this->getMyCollection();
+$categoryName = $this->getTitle();
+$_helper = $this->helper('catalog/output');
+$_collectionSize = $this->productsAmount();
+$_columnCount = $this->getColumnCount();
+?>
+<?php // Grid Mode ?>
+<div class="clear"></div>
+<div class="bottom homepage_category">
+    <div class="zblock zblock-home_top_2a">
+        <div class="home-container grid-container">
+            <div class=" grid_6 omega">
+                <div class="homepage_category_left">
+                    <span class="title"><?php echo $categoryName;?></span>
+                    <div class="left_top"><?php echo $this->__("Basläromedel i engelska och matematik! Välkomna att bläddra i vårens nyheter."); ?></div>
+                </div>
+                <div class="homepage_category_right">
+                    <ul class="products-grid widget-grid widget-grid-2">
+                        <?php $i=0; foreach ($_productCollection as $_product): ?>
+                            <li class="grid_3 item <?php echo($i%2)?'odd omega':'alpha';?>">
+                                <div class="product-img-box">
+                                    <a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $this->stripTags($this->getImageLabel($_product, 'base_image'), null, true) ?>" class="product-image">
+                                        <img src="<?php echo $this->helper('catalog/image')->init($_product, 'image')->constrainOnly(TRUE)->keepAspectRatio(false)->keepFrame(true)->resize(105, 150); ?>" alt="<?php echo $this->stripTags($this->getImageLabel($_product, 'image'), null, true) ?>" />
+                                    </a>
+                                </div>
+                                <div class="homepage_category_price">
+                                    <?php echo $this->getPriceHtml($_product, true) ?>
+                                </div>
+                            </li>
+                        <?php $i++; endforeach ?>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

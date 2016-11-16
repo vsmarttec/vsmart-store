@@ -1,0 +1,513 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE_AFL.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magentocommerce.com for more information.
+ *
+ * @category    design
+ * @package     base_default
+ * @copyright   Copyright (c) 2012 Magento Inc. (http://www.magentocommerce.com)
+ * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+/** @var Mage_Checkout_Block_Onepage_Billing $this */
+?>
+<?php
+$_streetValidationClass="";
+?>
+<form id="co-billing-form" action="">
+    <input type="hidden" name="badressid" class="badressid" id="badressid" value=""/>
+    <input type="hidden" name="fakturaadressid" class="fakturaadressid" id="fakturaadressid" value=""/>
+    <fieldset>
+        <ul class="form-list">
+            <?php if (false && $this->customerHasAddresses()): ?>
+                <li class="wide">
+                    <label for="billing-address-select"><?php echo $this->__('Select a billing address from your address book or enter a new address.') ?></label>
+                    <div class="input-box">
+                        <?php echo $this->getAddressesHtmlSelect('billing') ?>
+                    </div>
+                </li>
+            <?php endif; ?>
+            <li id="billing-new-address-form"<?php if (false && $this->customerHasAddresses()): ?> style="display:none;"<?php endif; ?>>
+                <fieldset>
+                    <input type="hidden" name="billing[address_id]" value="<?php echo $this->getAddress()->getId() ?>" id="billing:address_id" />
+                        <ul>
+                            <li class="fields <?php if($this->isCustomerLoggedIn()): ?>name-hide<?php endif; ?>">
+                                <?php echo $this->getLayout()->createBlock('customer/widget_name')->setObject($this->getAddress()->getFirstname() ? $this->getAddress() : $this->getQuote()->getCustomer())->setForceUseCustomerRequiredAttributes(!$this->isCustomerLoggedIn())->setFieldIdFormat('billing:%s')->setFieldNameFormat('billing[%s]')->toHtml() ?>
+                            </li>
+
+                            <!-- Personnummer (new address field) -->
+                            <?php if(!$this->isCustomerLoggedIn()): ?>
+                                <li class="fields <?php if($this->isCustomerLoggedIn()): ?>name-hide<?php endif; ?>">
+                                    <div class="field">
+                                        <label for="billing:majema_personnummer" class="required"><em>*</em>Personnummer (19XXXXXXXXXX)</label>
+                                        <div class="input-box">
+                                            <input type="text" id="billing:majema_personnummer" name="billing[majema_personnummer]" value="<?php echo $this->escapeHtml($this->getAddress()->getMajemaPersonnummer()) ?>" title="Personnummer" class="input-text validate-digits validate-length minimum-length-12 required-entry <?php echo $this->helper('customer/address')->getAttributeValidationClass('majema_personnummer') ?>" />
+                                        </div>
+                                    </div>
+                                </li>
+                            <?php endif ?>
+                            <!-- End Personnummer field -->
+
+                            <?php if($this->isCustomerLoggedIn()): ?>
+                                <li class="fields">
+                                    <div class="field">
+                                        <label for="billing:majema_school_id">Skol ID</label>
+                                        <div class="input-box">
+                                            <input type="text" id="billing:majema_school_id" name="billing[majema_school_id]" value="<?php // echo $this->escapeHtml($this->getAddress()->getMajemaSchoolId()) ?>" title="Skol ID" class="input-text <?php echo $this->helper('customer/address')->getAttributeValidationClass('majema_school_id') ?>" />
+                                        </div>
+                                    </div>
+                                </li>
+                                <script>
+                                    var flagAlert = false;
+                                    jQuery(function ($) {
+                                        // Hide address fields
+                                        $('#billing\\:company,#billing\\:street1,#billing\\:street2,#billing\\:postcode,#billing\\:city,#billing\\:country_id,#billing\\:use_for_shipping_yes,#billing\\:use_for_shipping_no,#billing\\:majema_school_id,#billing\\:majema_invoiceref').closest('li').hide();
+                                        $('#shipping\\:company,#shipping\\:street1,#shipping\\:street2,#shipping\\:postcode,#shipping\\:city,#shipping\\:country_id,#shipping\\:same_as_billing').closest('li').hide();
+
+                                        var schools; // Variable for search results to support selecting one
+
+                                        // To prevent hitting search service to hard..
+                                        var searchDelayMs = 300; // ...delay time between last keystroke and search
+                                        var minimumQueryLength = 3; // ...and require a minimum length for a search query
+                                        var lastQuery; // ...and remember last search query to avoid searching for the same thing
+                                        var currentSearch; // ...and keep track of the current request so that it can be aborted
+
+                                        var searchTimeout; // Variable for search timeout to be able to cancel it on keydown
+                                        var $searchResultsDiv = $('#search-results');
+
+                                        // Perform a search and display the results
+                                        function search(query) {
+
+                                            // Abort any current request to prevent a initial slower request for a short string
+                                            // to pop up a long result set, replacing a later search for a longer search string
+                                            if (currentSearch) {
+                                                currentSearch.abort();
+                                            }
+                                            //$('#search-results').css('display','none');
+                                            $('#loadingmessage').css('display','block');
+                                            // $('#loadingmessage').show();
+                                            currentSearch = $.ajax({
+                                                url: '<?php echo $this->getUrl('schoolsearch/searchschool/searchschool') ?>',
+                                                dataType: 'json',
+                                                data: {q: query}
+                                            }).done(function (foundSchools) {
+                                                currentSearch = null;
+                                                $searchResultsDiv.hide().empty();
+                                                schools = foundSchools;
+                                                $('#loadingmessage').css('display','none');
+                                                if(schools=="")
+                                                {
+                                                    $("#advice-required-entry-schoolsearch").remove();
+                                                    $("#schoolsearch").after("<div id='advice-required-entry-schoolsearch' class='validation-advice-schoolsearch' style='color:red;margin-bottom: 20px;'><?php echo $this->__("Oops, something seems to have gone wrong!Try to enter the schools name again and wait a few seconds while our school directory is searched.If your school does not come up - so is your school probably not in our customer and we ask you to contact us by info@majema.se,chat or phone 08-716 67 95 so we can set up your school.regards,We at Majema") ; ?></div>");
+                                                    return;
+                                                }
+                                                else
+                                                {
+                                                    $("#advice-required-entry-schoolsearch").remove();
+                                                }
+                                                /*if(query.length > 12 && query.length%4==0 && schools !== null )
+                                                 {
+                                                 if(flagAlert==false || (flagAlert==true && query.length%4==0))
+                                                 {
+                                                 alert("<?php echo $this->__("Oops, something seems to have gone wrong!Try to enter the schools name again and wait a few seconds while our school directory is searched.If your school does not come up - so is your school probably not in our customer and we ask you to contact us by info@majema.se,chat or phone 08-716 67 95 so we can set up your school.regards,We at Majema"); ?>");
+                                                 return;
+                                                 }
+
+                                                 }*/
+
+                                                foundSchools.each(function (school, i) {
+                                                    // Create elements for each search hit
+                                                    var singleResult = $('<div><strong>' + school.school['name'] + '</strong><p><span class="streetAddress">' + school.shipping['street1'] + '</span><br /><span class="postalCode">' + school.shipping['postcode'] + '</span><br /><span class="postalAddress">' + school.shipping['city'] + '</span></p></div>');
+                                                    $('<div>')
+                                                        .data('index', i)
+                                                        .addClass('wrapper')
+                                                        .append(singleResult)
+                                                        /*$('<div>')
+                                                         .append($('<strong>').text(school.school['name']))
+                                                         .append($('<p>')
+                                                         .append($('<span class="streetAddress">').text(school.shipping['street1']))
+                                                         .append($('<br>'))
+                                                         .append($('<span class="postalCode">').text(school.shipping['postcode']))
+                                                         .append(' ')
+                                                         .append($('<span class="postalAddress">').text(school.shipping['city']))
+                                                         )
+                                                         )*/
+                                                        .appendTo($searchResultsDiv);
+                                                });
+                                                $searchResultsDiv.show()
+                                            });
+                                        }
+
+                                        $('#schoolsearch').on('keyup', function () {
+                                            // Don't search for short strings, empty strings or same search as previous one
+                                            var query = $.trim($(this).val());
+                                            if (query.length < minimumQueryLength || query == lastQuery) {
+                                                return;
+                                            }
+
+                                            // Remember current query
+                                            lastQuery = query;
+
+                                            // Cancel any search that is about to happen
+                                            clearTimeout(searchTimeout);
+
+                                            // Search after a short delay to prevent hammering the API unnecessarily
+                                            searchTimeout = setTimeout(function () {
+                                                search(query);
+                                            }, searchDelayMs);
+                                        });
+
+                                        // This is what happen when a search hit is clicked
+                                        $('#search-results').on('click', '.wrapper', function () {
+                                            $("#advice-required-entry-schoolsearch").remove();
+                                            var school = schools[$(this).data('index')];
+
+                                            // Somehow the clicked school should be visible to the user even when the search results
+                                            // is hidden. Right now this is done in the search field but there is probably a better place.
+                                            $('#schoolsearch').val(school.school.name);
+                                            $('#billing\\:majema_school_id').val(school.school.id);
+
+                                            // Set billings fields with data from selected school
+                                            $('#billing\\:company').val(school.billing.company);
+                                            $('#billing\\:street1').val(school.billing.street1);
+                                            $('#billing\\:street2').val(school.billing.street2);
+                                            $('#billing\\:postcode').val(school.billing.postcode);
+                                            $('#billing\\:city').val(school.billing.city);
+                                            $('#billing\\:country_id').val((school.billing.country || 'SE').toUpperCase());
+
+                                            // Set shipping fields with data from selected school, the name and company is also
+                                            // copied since it's required and not present in the address data
+                                            $('#shipping\\:firstname').val($('#billing\\:firstname').val());
+                                            $('#shipping\\:lastname').val($('#billing\\:lastname').val());
+                                            $('#shipping\\:company').val(school.school.name);
+                                            $('#shipping\\:street1').val(school.shipping.street1);
+                                            $('#shipping\\:street2').val(school.shipping.street2);
+                                            $('#shipping\\:postcode').val(school.shipping.postcode);
+                                            $('#shipping\\:city').val(school.shipping.city);
+                                            $('#shipping\\:country_id').val((school.shipping.country || 'SE').toUpperCase());
+
+                                            // Since goods labeling is set in the shipping address panel we never ship shipping
+                                            $('#billing\\:use_for_shipping_no').attr('checked', 'checked');
+
+                                            $("#fakturaadressid").val(school.billing.fakturaadressid);
+                                            $("#badressid").val(school.billing.badressid);
+
+                                            var $selectedSchoolBilling = $('.selected-school.billing');
+                                            $selectedSchoolBilling.hide();
+                                            $selectedSchoolBilling.find('strong').text(school.billing.company);
+                                            var bstreet = school.billing.street1;
+                                            if(school.billing.street2!="")
+                                            {
+
+                                                bstreet +='<br/>'+school.billing.street2;
+                                            }
+                                            $selectedSchoolBilling.find('.streetAddress').html(bstreet);
+                                            $selectedSchoolBilling.find('.postalCode').text(school.billing.postcode);
+                                            $selectedSchoolBilling.find('.postalAddress').text(school.billing.city);
+                                            $selectedSchoolBilling.show();
+
+                                            var $selectedSchoolBillingshipping = $('.selected-school.billing.shipping');
+                                            $selectedSchoolBillingshipping.hide();
+                                            $selectedSchoolBillingshipping.find('strong').text(school.billing.company);
+                                            $selectedSchoolBillingshipping.find('.streetAddress').html(bstreet);
+                                            $selectedSchoolBillingshipping.find('.postalCode').text(school.billing.postcode);
+                                            $selectedSchoolBillingshipping.find('.postalAddress').text(school.billing.city);
+                                            $selectedSchoolBillingshipping.show();
+
+                                            var $selectedSchoolShipping = $('.selected-school.shipping');
+                                            $selectedSchoolShipping.hide();
+                                            $selectedSchoolShipping.find('strong').text(school.school.name);
+                                            var sstreet = school.shipping.street1;
+                                            if(school.shipping.street2!="")
+                                            {
+
+                                                sstreet +='<br />'+school.shipping.street2;
+                                            }
+                                            $selectedSchoolShipping.find('.streetAddress').html(sstreet);
+                                            $selectedSchoolShipping.find('.postalCode').text(school.shipping.postcode);
+                                            $selectedSchoolShipping.find('.postalAddress').text(school.shipping.city);
+                                            $selectedSchoolShipping.show();
+                                            $('#billing\\:majema_invoiceref').closest('li').show();
+
+                                            $searchResultsDiv.hide();
+                                        });
+                                    });
+                                </script>
+
+                                <li class="fields">
+                                    <div class="add-info">
+                                        <h3>Vilken skola arbetar du på?</h3>
+                                        <p>Om din skola saknas eller om uppgifterna inte stämmer vänligen kontakta oss på chatten, <a href="mailto:info@majema.se">info@majema.se</a> eller <a href="tel:+46 8 716 67 95">+46 8 716 67 95</a>.</p>
+                                    </div>
+
+                                    <div class="field">
+                                        <label for="schoolsearch">Sök din skola via namn, postnummer eller ort</label>
+                                        <div class="input-box">
+                                            <input type="text" id="schoolsearch" class="input-text required-entry" />
+                                        </div>
+                                    </div>
+                                    <div id='loadingmessage' class="field" style="display: none">
+                                    </div>
+                                    <div id="search-results" class="">
+
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    <div class="selected-school billing">
+                                        <h1><?php echo $this->__('Billing Address') ?></h1>
+                                        <strong></strong><br>
+                                        <span class="streetAddress"></span><br>
+                                        <span class="postalCode"></span> <span class="postalAddress"></span>
+                                    </div>
+                                    <div class="selected-school billing shipping">
+                                        <h1><?php echo $this->__('Shipping Address') ?></h1>
+                                        <strong></strong><br>
+                                        <span class="streetAddress"></span><br>
+                                        <span class="postalCode"></span> <span class="postalAddress"></span>
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                </li>
+                                <li class="fields">
+                                    <div class="fields">
+                                        <label for="billing:majema_invoiceref">Fakturareferens</label>
+                                        <div class="input-box">
+                                            <input type="text" id="billing:majema_invoiceref" name="billing[majema_invoiceref]" value="<?php echo $this->escapeHtml($this->getAddress()->getMajemaInvoiceref()) ?>" title="Fakturareferens" class="input-text <?php echo $this->helper('customer/address')->getAttributeValidationClass('majema_invoiceref') ?> required-entry" />
+                                        </div>
+                                        <p class="invoiceref"><strong><?php echo $this->__("NOTE ! Important to enter the correct invoice reference. ");?></strong><?php echo $this->__("Schools, units and municipalities require the invoice reference entered. Invoice Reference can be a combination of numbers and / or letters , and is different for different schools , so it is important that you check what precisely your invoice reference are . Examples of invoice reference, was such ZZ12345 , YY123456 , 12345 , or AA123 . Important to just refnamn / No written into the field, and no other data . Are you missing invoice reference , please fill in your namn.Tack"); ?></p>
+                                    </div>
+                                </li>
+                            <?php endif; ?>
+                            <?php if($this->isCustomerLoggedIn()): ?>
+                                <li class="fields">
+
+                                    <div class="field">
+                                        <label for="billing:company"><?php echo $this->__('Company') ?></label>
+                                        <div class="input-box">
+                                            <input type="text" id="billing:company" name="billing[company]" value="<?php echo $this->escapeHtml($this->getAddress()->getCompany()) ?>" title="<?php echo $this->__('Company') ?>" class="input-text <?php echo $this->helper('customer/address')->getAttributeValidationClass('company') ?>" />
+                                        </div>
+                                    </div>
+                                </li>
+
+                                <?php $_streetValidationClass = $this->helper('customer/address')->getAttributeValidationClass('street'); ?>
+                            <?php endif; ?>
+                            <li class="fields">
+                                <?php if(!$this->isCustomerLoggedIn()): ?>
+                                    <div class="field-2">
+                                        <label for="billing:email" class="required"><em>*</em><?php echo $this->__('Email Address') ?></label>
+                                        <div class="input-box">
+                                            <input type="text" name="billing[email]" id="billing:email" value="<?php echo $this->escapeHtml($this->getAddress()->getEmail()) ?>" title="<?php echo $this->__('Email Address') ?>" class="input-text validate-email required-entry" />
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                                <div class="field-2">
+                                    <label for="billing:street1" class="required"><em>*</em><?php echo $this->__('Address') ?></label>
+                                    <div class="input-box">
+                                        <input type="text" title="<?php echo $this->__('Street Address') ?>" name="billing[street][]" id="billing:street1" value="<?php echo $this->escapeHtml($this->getAddress()->getStreet(1)) ?>" class="input-text required-entry <?php echo $_streetValidationClass ?>" />
+                                        <input type="text" title="<?php echo $this->__('Street Address') ?>" name="billing[street][]" id="billing:street2" value="<?php echo $this->escapeHtml($this->getAddress()->getStreet(2)) ?>" class="input-text <?php echo $_streetValidationClass ?>" />
+                                    </div>
+                                </div>
+                            </li>
+                            <?php $_streetValidationClass = trim(str_replace('required-entry', '', $_streetValidationClass)); ?>
+                            <?php for ($_i = 2, $_n = $this->helper('customer/address')->getStreetLines(); $_i <= $_n; $_i++): ?>
+                                <li class="wide">
+                                    <div class="input-box">
+                                        <input type="text" title="<?php echo $this->__('Street Address %s', $_i) ?>" name="billing[street][]" id="billing:street<?php echo $_i ?>" value="<?php echo $this->escapeHtml($this->getAddress()->getStreet($_i)) ?>" class="input-text <?php echo $_streetValidationClass ?>" />
+                                    </div>
+                                </li>
+                            <?php endfor; ?>
+                            <?php if ($this->helper('customer/address')->isVatAttributeVisible()) : ?>
+                                <li class="wide">
+                                    <label for="billing:vat_id"><?php echo $this->__('VAT Number') ?></label>
+                                    <div class="input-box">
+                                        <input type="text" id="billing:vat_id" name="billing[vat_id]" value="<?php echo $this->escapeHtml($this->getAddress()->getVatId()) ?>" title="<?php echo $this->__('VAT Number') ?>" class="input-text <?php echo $this->helper('customer/address')->getAttributeValidationClass('vat_id') ?>" />
+                                    </div>
+                                </li>
+                            <?php endif; ?>
+                            <li class="fields">
+                                <div class="field-2">
+                                    <label for="billing:postcode" class="required"><em>*</em><?php echo $this->__('Zip/Postal Code') ?></label>
+                                    <div class="input-box">
+                                        <input type="text" title="<?php echo $this->__('Zip/Postal Code') ?>" name="billing[postcode]" id="billing:postcode" value="<?php echo $this->escapeHtml($this->getAddress()->getPostcode()) ?>" class="input-text validate-zip-international <?php echo $this->helper('customer/address')->getAttributeValidationClass('postcode') ?>" />
+                                    </div>
+                                </div>
+                                <div class="field-2">
+                                    <label for="billing:city" class="required"><em>*</em><?php echo $this->__('City') ?></label>
+                                    <div class="input-box">
+                                        <input type="text" title="<?php echo $this->__('City') ?>" name="billing[city]" value="<?php echo $this->escapeHtml($this->getAddress()->getCity()) ?>" class="input-text <?php echo $this->helper('customer/address')->getAttributeValidationClass('city') ?>" id="billing:city" />
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="fields">
+
+                                <div class="field-2">
+                                    <label for="billing:region_id" style="display: none"><em>*</em><?php echo $this->__('State/Province') ?></label>
+                                    <div class="input-box" style="display:none;">
+                                        <select id="billing:region_id" name="billing[region_id]" title="<?php echo $this->__('State/Province') ?>" class="validate-select">
+                                            <option value=""><?php echo $this->__('Please select region, state or province') ?></option>
+                                        </select>
+                                        <script type="text/javascript">
+                                            //<![CDATA[
+                                            $('billing:region_id').setAttribute('defaultValue',  "<?php echo $this->getAddress()->getRegionId() ?>");
+                                            //]]>
+                                        </script>
+                                        <input type="text" id="billing:region" name="billing[region]" value="<?php echo $this->escapeHtml($this->getAddress()->getRegion()) ?>" disabled="disabled" title="<?php echo $this->__('State/Province') ?>" class="input-text <?php echo $this->helper('customer/address')->getAttributeValidationClass('region') ?>" />
+                                    </div>
+                                </div>
+                                <div class="field-2">
+                                    <label for="billing:country_id" class="required"><em>*</em><?php echo $this->__('Country') ?></label>
+                                    <div class="input-box">
+                                        <?php echo $this->getCountryHtmlSelect('billing') ?>
+                                    </div>
+                                </div>
+                            </li>
+                            <?php if(!$this->isCustomerLoggedIn()): ?>
+                                <li class="fields">
+                                    <div class="field-2">
+                                        <!--	<input type="hidden" id="billing:majema_school_id" name="billing[majema_school_id]" value="13591" title="Skol ID" /> -->
+                                        <lable class="school_type"><?php echo $this->__('If you work in a school?'); ?> </lable> <br/>
+                                        <label for="billing:majema_school_type" class="required"><?php echo $this->__('Please indicate in which grade you are working in:'); ?></label>
+                                        <div class="input-box">
+                                            <select name="billing[majema_school_type]" id="billing:majema_school_type" onchange="validateType()">
+                                                <option value="">Välj</option>
+                                                <option value="preschool">Förskola</option>
+                                                <option value="fk">Fk</option>
+                                                <option value="1-3">1-3</option>
+                                                <option value="1-6">1-6</option>
+                                                <option value="4-6">4-6</option>
+                                                <option value="4-9">4-9</option>
+                                                <option value="6-9">6-9</option>
+                                                <option value="Fk-3">Fk-3</option>
+                                                <option value="Fk-6">Fk-6</option>
+                                                <option value="Fk-9">Fk-9</option>
+                                                <option value="Fritids">Fritids</option>
+                                                <option value="gymnasium komuvux sfi">Gymnasie/Komuvux/Sfi</option>
+                                                <option value="lärarstudent">Lärarstudent</option>
+                                                <option value="specialpedagog särskola">Specialpedagog/särskola</option>
+                                                <option value="Övrigt/All info erhålls">Övrigt/All info erhålls</option>
+                                            </select>
+                                            <div class="hidden" id="advice-required-entry-billing:school_type" style="">Detta är ett obligatoriskt fält.</div>
+                                        </div>
+                                        <script type="text/javascript">
+                                            //<![CDATA[
+                                            $('billing:majema_school_type').setAttribute('defaultValue',  "<?php echo $this->getAddress()->getMajemaSchoolType() ?>");
+                                            //]]>
+                                        </script>
+                                    </div>
+                                </li>
+                            <?php endif; ?>
+
+
+                            <?php if(!$this->isCustomerLoggedIn()): ?>
+
+                                <?php $_dob = $this->getLayout()->createBlock('customer/widget_dob') ?>
+                                <?php $_gender = $this->getLayout()->createBlock('customer/widget_gender') ?>
+                                <?php if ($_dob->isEnabled() || $_gender->isEnabled()): ?>
+                                    <li class="fields">
+                                        <?php if ($_dob->isEnabled()): ?>
+                                            <div class="field">
+                                                <?php echo $_dob->setDate($this->getQuote()->getCustomerDob())->setFieldIdFormat('billing:%s')->setFieldNameFormat('billing[%s]')->toHtml() ?>
+                                            </div>
+                                        <?php endif; ?>
+                                        <?php if ($_gender->isEnabled()): ?>
+                                            <div class="field-2">
+                                                <?php echo $_gender->setGender($this->getQuote()->getCustomerGender())->setFieldIdFormat('billing:%s')->setFieldNameFormat('billing[%s]')->toHtml() ?>
+                                            </div>
+                                        <?php endif ?>
+                                    </li>
+                                <?php endif ?>
+
+                                <?php if ($this->isTaxvatEnabled()):?>
+                                    <li><?php echo $this->getTaxvatHtml() ?></li>
+                                <?php endif; ?>
+
+                                <li class="fields" id="register-customer-password">
+                                    <div class="field">
+                                        <label for="billing:customer_password" class="required"><em>*</em><?php echo $this->__('Password') ?></label>
+                                        <div class="input-box">
+                                            <input type="password" name="billing[customer_password]" id="billing:customer_password" title="<?php echo $this->__('Password') ?>" class="input-text required-entry validate-password" />
+                                        </div>
+                                    </div>
+                                    <div class="field-2">
+                                        <label for="billing:confirm_password" class="required"><em>*</em><?php echo $this->__('Confirm Password') ?></label>
+                                        <div class="input-box">
+                                            <input type="password" name="billing[confirm_password]" title="<?php echo $this->__('Confirm Password') ?>" id="billing:confirm_password" class="input-text required-entry validate-cpassword" />
+                                        </div>
+                                    </div>
+                                </li>
+                                <?php echo $this->getChildHtml('persistent.remember.me'); ?>
+                            <?php endif; ?>
+                            <?php if ($this->isCustomerLoggedIn() && false && $this->customerHasAddresses()):?>
+                                <li class="control">
+                                    <input type="checkbox" name="billing[save_in_address_book]" value="1" title="<?php echo $this->__('Save in address book') ?>" id="billing:save_in_address_book" onchange="if(window.shipping) shipping.setSameAsBilling(false);"<?php if ($this->getAddress()->getSaveInAddressBook()):?> checked="checked"<?php endif;?> class="checkbox" /><label for="billing:save_in_address_book"><?php echo $this->__('Save in address book') ?></label>
+                                </li>
+                            <?php else:?>
+                                <li class="no-display"><input type="hidden" name="billing[save_in_address_book]" value="1" /></li>
+                            <?php endif; ?>
+                            <?php echo $this->getChildHtml('form.additional.info'); ?>
+                        </ul>
+                    <?php echo $this->getChildHtml('persistent.remember.me.tooltip'); ?>
+                </fieldset>
+            </li>
+            <?php if ($this->canShip()): ?>
+                <li class="control">
+                    <input type="radio" name="billing[use_for_shipping]" id="billing:use_for_shipping_yes" value="1"<?php if ($this->isUseBillingAddressForShipping()) {?> checked="checked"<?php }?> title="<?php echo  $this->__('Ship to this address') ?>" onclick="$('shipping:same_as_billing').checked = true;" class="radio" /><label for="billing:use_for_shipping_yes"><?php echo  $this->__('Ship to this address') ?></label></li>
+                <li class="control">
+                    <input type="radio" name="billing[use_for_shipping]" id="billing:use_for_shipping_no" value="0"<?php if (!$this->isUseBillingAddressForShipping()) {?> checked="checked"<?php }?> title="<?php echo $this->__('Ship to different address') ?>" onclick="$('shipping:same_as_billing').checked = false;" class="radio" /><label for="billing:use_for_shipping_no"><?php echo $this->__('Ship to different address') ?></label>
+                </li>
+            <?php endif; ?>
+        </ul>
+        <?php if (!$this->canShip()): ?>
+            <input type="hidden" name="billing[use_for_shipping]" value="1" />
+        <?php endif; ?>
+        <div class="buttons-set" id="billing-buttons-container">
+            <p class="required"><?php echo $this->__('* Required Fields') ?></p>
+
+            <?php if(!$this->isCustomerLoggedIn()): ?>
+                <button type="button" title="<?php echo $this->__('Continue to delivery method') ?>" data-title="<?php echo $this->__('Continue to delivery method') ?>" data-title-jump="Nästa" class="button" onclick="billing.save()"><span><span><?php echo $this->__('Continue to delivery method') ?></span></span></button>
+            <?php else: ?>
+                <button type="button" title="<?php echo $this->__('Continue') ?>" data-title="<?php echo $this->__('Continue') ?>" data-title-jump="Nästa" class="button" onclick="billing.save()"><span><span><?php echo $this->__('Continue') ?></span></span></button>
+            <?php endif; ?>
+            <p class="back-link"><a href="#" onclick="checkout.back(); return false;"><?php echo $this->__('Back') ?></a></p>
+                <span class="please-wait" id="billing-please-wait" style="display:none;">
+                    <img src="<?php echo $this->getSkinUrl('images/opc-ajax-loader.gif') ?>" alt="<?php echo $this->__('Loading next step...') ?>" title="<?php echo $this->__('Loading next step...') ?>" class="v-middle" /> <?php echo $this->__('Loading next step...') ?>
+                </span>
+        </div>
+    </fieldset>
+</form>
+<script type="text/javascript">
+    //<![CDATA[
+    var billing = new Billing('co-billing-form', '<?php echo $this->getUrl('checkout/onepage/getAddress') ?>address/', '<?php echo $this->getUrl('checkout/onepage/saveBilling') ?>');
+    var billingForm = new VarienForm('co-billing-form');
+
+    //billingForm.setElementsRelation('billing:country_id', 'billing:region', '<?php echo $this->getUrl('directory/json/childRegion') ?>', '<?php echo $this->__('Select State/Province...') ?>');
+    $('billing-address-select') && billing.newAddress(!$('billing-address-select').value);
+
+    var billingRegionUpdater = new RegionUpdater('billing:country_id', 'billing:region', 'billing:region_id', <?php echo $this->helper('directory')->getRegionJson() ?>, undefined, 'billing:postcode');
+    if ($('onepage-guest-register-button')) {
+        Event.observe($('onepage-guest-register-button'), 'click', function(event) {
+            var billingRememberMe = $('co-billing-form').select('#remember-me-box');
+            if (billingRememberMe.length > 0) {
+                if ($('login:guest') && $('login:guest').checked) {
+                    billingRememberMe[0].hide();
+                } else if ($('login:register') && ($('login:register').checked || $('login:register').type == 'hidden')) {
+                    billingRememberMe[0].show();
+                }
+            }
+        });
+    }
+
+    //]]>
+</script>

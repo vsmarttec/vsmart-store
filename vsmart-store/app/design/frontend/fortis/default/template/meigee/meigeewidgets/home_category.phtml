@@ -1,0 +1,39 @@
+<?php
+$_productCollection = $this->getMyCollection();
+$categoryName = $this->catName();
+$_helper = $this->helper('catalog/output');
+$_collectionSize = $this->productsAmount();
+$_columnCount = $this->getColumnCount();
+?>
+<?php // Grid Mode ?>
+<div class="clear"></div>
+<div class="home-container">
+    <div class="meigee-widget">
+        <div class="meigee-widget-wrapper">
+            <div class="grid-text-box grid_6 alpha">
+                <h2><?php echo $categoryName;?></h2>
+            </div>
+            <div class="grid_6 omega">
+                <ul class="products-grid widget-grid widget-grid-2">
+                    <?php $i=0; foreach ($_productCollection as $_product): ?>
+                        <li class="grid_3 item <?php echo($i%2)?'odd omega':'alpha';?>">
+                            <?php echo $this->getPriceHtml($_product, true) ?>
+                            <div class="product-img-box">
+                                <a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $this->stripTags($this->getImageLabel($_product, 'base_image'), null, true) ?>" class="product-image">
+                                    <img src="<?php echo $this->helper('catalog/image')->init($_product, 'image')->constrainOnly(TRUE)->keepAspectRatio(TRUE)->keepFrame(FALSE)->resize(420, null); ?>" alt="<?php echo $this->stripTags($this->getImageLabel($_product, 'image'), null, true) ?>" />
+                                    <?php /* Label New */ echo MAGE::helper('ThemeOptions')->getProductNewLabel($_product); ?>
+                                </a>
+                                <div class="product-desc">
+                                    <a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $this->stripTags($this->getImageLabel($_product, 'base_image'), null, true) ?>" class="product-image product-headline"><h3><?php echo $_product->getName(); ?></h3></a>
+                                </div>
+                                <div class="add-to-cart">
+                                    <button type="button" title="<?php echo $this->__('Läs mer') ?>" class="button" onclick="setLocation('<?php echo $_product->getProductUrl() ?>')"><span><span><span><?php echo $this->__('Läs mer') ?></span></span></span></button>
+                                </div>
+                            </div>
+                        </li>
+                    <?php $i++; endforeach ?>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

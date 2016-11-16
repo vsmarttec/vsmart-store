@@ -1,0 +1,53 @@
+.slider-in-laptop {
+  width: 70%;
+  height: 200px;
+  padding: 2% 15% 7%;
+  background: none;
+}
+.slider-in-laptop .rsOverflow,
+.slider-in-laptop .rsSlide,
+.slider-in-laptop .rsVideoFrameHolder,
+.slider-in-laptop .rsThumbs {
+  background: #151515;
+}
+.imgBg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: auto;
+}
+.slider-in-laptop .rsBullets {
+  bottom: -25px;
+}
+.laptopBg {
+  position: relative;
+  width: 100%;
+  height: auto;
+}
+.slider-in-laptop .rsBullets {
+    bottom: -30px;
+}
+
+.rsBtnCenterer {
+    height: 20px;
+    left: 50%;
+    position: absolute;
+    top: 50%;
+    width: 20px;
+}
+.rsPlayBtn {
+    cursor: pointer;
+    height: 64px;
+    margin-left: -32px;
+    margin-top: -32px;
+    width: 64px;
+}
+.rsPlayBtnIcon {
+    background: url("../rs-universal.png") no-repeat scroll 0 -32px rgba(0, 0, 0, 0.75);
+    border-radius: 4px 4px 4px 4px;
+    display: block;
+    height: 64px;
+    transition: all 0.3s ease 0s;
+    width: 64px;
+}

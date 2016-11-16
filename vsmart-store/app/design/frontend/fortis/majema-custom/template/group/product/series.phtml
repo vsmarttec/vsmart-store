@@ -1,0 +1,19 @@
+<?php $seriesCollection= $this->getSeriesCollection(); ?>
+<?php if($seriesCollection && $seriesCollection->count()): ?>
+    <div class="home-container grid-container">
+        <div class=" grid_6 omega">
+           <h3 class="section-title padding-right"><?php echo $this->__('Series');?></h3>
+            <ul class="products-grid widget-grid widget-grid-2">
+                <?php $i=0; foreach($seriesCollection as $product):?>
+                    <li class="grid_3 item <?php if($i%2){echo 'odd omega';}else{echo 'alpha';} ?>">
+                        <div class="product-img-box">
+                            <a href="<?php echo $product->getProductUrl() ?>" title="<?php echo $this->stripTags($this->getImageLabel($product, 'base_image'), null, true) ?>" class="product-image">
+                                <img src="<?php echo $this->helper('catalog/image')->init($product, 'image')->constrainOnly(TRUE)->keepAspectRatio(FALSE)->keepFrame(FALSE)->resize(370, 200); ?>" alt="<?php echo $this->stripTags($this->getImageLabel($product, 'image'), null, true) ?>" />
+                            </a>
+                        </div>
+                    </li>
+                <?php $i++; endforeach; ?>
+            </ul>
+        </div>
+    </div>
+<?php endif; ?>

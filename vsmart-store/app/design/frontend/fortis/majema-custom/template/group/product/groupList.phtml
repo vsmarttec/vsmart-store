@@ -1,0 +1,35 @@
+<?php
+/**
+ * Magento
+ *
+ * @category    design
+ * @package     meigeetheme_default
+ * @copyright   Copyright (c) 2012 MeigeeTeam. (http://www.meigeeteam.com)
+ */
+?>
+<?php
+/**
+ * Product list template
+ *
+ * @see Mage_Catalog_Block_Product_List
+ */
+$_productCollection=$this->getCollection();
+?>
+<?php if(!count($_productCollection)): ?>
+    <p class="note-msg"><?php echo $this->__('There are no products matching the selection.') ?></p>
+<?php else: ?>
+    <ul class="products-grid large-grid">
+        <?php foreach ($_productCollection as $_product): ?>
+            <li class="grid_3 item">
+                <div class="product-img-box">
+                    <a href="<?php echo $_product['url'] ?>" title="<?php echo $_product['image_label'] ?>" class="product-image">
+                        <div class="hover-box">
+                            <img src="<?php echo $_product['image_url'];?>" alt="<?php echo $_product['image_label'] ?>" />
+                        </div>
+                    </a>
+                </div>
+            </li>
+        <?php endforeach ?>
+    </ul>
+    <script type="text/javascript">decorateGeneric($$('ul.products-grid'), ['odd','even','first','last'])</script>
+<?php endif; ?>

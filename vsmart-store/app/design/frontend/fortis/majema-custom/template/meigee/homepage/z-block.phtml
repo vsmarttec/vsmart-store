@@ -1,0 +1,5 @@
+<?php
+if($zBlockPosition=$this->getZBlocks()){
+    echo Mage::app()->getLayout()->createBlock('zblocks/block')->setPosition($zBlockPosition)->toHtml();
+}
+?>

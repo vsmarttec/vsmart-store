@@ -1,0 +1,22 @@
+<div class="blog">
+    <div class="blog-inner-wrapper">
+        <h3><a href="/blogg/">L&auml;s v&aring;r blogg!</a></h3>
+    </div>
+</div>
+<script type="text/javascript">
+    jQuery.getJSON("<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB)?>wordpress/wp-json.php/posts")
+        .done(function (data) {
+            var htmlString = "";
+            jQuery.each(data, function (index, entry) {
+                htmlString += "<a href =\"" + entry.link + "\">";
+                htmlString += "<h4>" + entry.title + "</h4>";
+                htmlString += "<p>" + entry.content.substr(0, 100) + "...</p>";
+                htmlString += "</a>";
+            });
+            jQuery(".blog-inner-wrapper").append(htmlString);
+        })
+        .fail(function (jqxhr, textStatus, error) {
+            var err = textStatus + ", " + error;
+            console.log("Request Failed: " + err);
+        });
+</script>

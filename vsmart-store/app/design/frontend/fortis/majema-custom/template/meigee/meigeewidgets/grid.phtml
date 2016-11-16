@@ -1,0 +1,176 @@
+<?php
+    $_productCollection = $this->getMyCollection();
+    $category = $this->catName();
+    $_helper = $this->helper('catalog/output');
+    $_collectionSize = $this->productsAmount();
+    $_columnCount = 4; //$this->getColumnCount();
+?>
+<?php // Grid Mode ?>
+<?php
+$_helper = $this->helper('catalog/output');
+$theme = $this->helper('fortis');
+$helpLabels = $this->helper('fortis/labels');
+$helpTemplate = $this->helper('fortis/template');
+$helpImg = $this->helper('infortis/image');
+
+//Image size
+$imgWidth = intval($theme->getCfg('category/image_width'));
+$imgHeight = $imgWidth;
+
+//If image width is not specified, use default values
+if ($imgWidth <= 0)
+{
+    $imgWidth = 295;
+    $imgHeight = 295;
+}
+
+//Image aspect ratio settings
+$keepAspectRatio = $theme->getCfg('category/aspect_ratio');
+if ($keepAspectRatio)
+{
+    $imgHeight = 0; //Height will be calculated automatically (based on width) to keep the aspect ratio
+    $catViewKeepFrame = FALSE;
+}
+else
+{
+    $catViewKeepFrame = TRUE;
+}
+
+if (Mage::registry('catViewKeepFrame') === NULL)
+{
+    Mage::register('catViewKeepFrame', $catViewKeepFrame);
+}
+
+//Get grid configuration array
+$gc = $theme->getCfgGroup('category_grid');
+
+//Get number of columns (from parameter or from theme config)
+$columnCount = 3;
+if ($this->getGridColumnCount())
+{
+    $columnCount = $this->getGridColumnCount();
+}
+else
+{
+    $columnCount = $gc['column_count'];
+}
+
+//Grid classes
+$gridClasses = '';
+$productNameClasses = '';
+if ($gc['display_name'] == 2 && $gc['display_name_single_line'] == true)
+    $gridClasses .= ' single-line-name';
+if ($gc['display_name'] == 1)
+    $productNameClasses .= ' display-onhover';
+if ($gc['centered'])
+    $gridClasses .= ' centered';
+if ($gc['hover_effect'])
+    $gridClasses .= ' hover-effect';
+if ($gc['equal_height'])
+    $gridClasses .= ' equal-height';
+if ($gc['style_boxed'])
+    $gridClasses .= ' products-grid-style1';
+
+//Size of grid elements
+if ($columnCount >= 6)
+{
+    $gridClasses .= ' size-xs';
+}
+elseif ($columnCount >= 4)
+{
+    $gridClasses .= ' size-s';
+}
+
+//Container "actions" at the bottom of the grid item stores button and add-to links
+//If at least one of those elements was set as "Display on hover" but no element was set as "Display":
+//apply appropriate classes to the container.
+$actionsClasses = '';
+if ($gc['display_addtocart'] == 1 || ($gc['display_addtolinks'] == 1 && !$gc['addtolinks_simple']))
+{
+    $actionsClasses = ' display-onhover';
+}
+if ($gc['display_addtocart'] == 2 || ($gc['display_addtolinks'] == 2 && !$gc['addtolinks_simple']))
+{
+    $actionsClasses = '';
+}
+?>
+
+<div class="category-products">
+    <ul class="products-grid category-products-grid itemgrid itemgrid-adaptive itemgrid-<?php echo $columnCount; ?>col<?php if($gridClasses) echo $gridClasses; ?>">
+        <?php $i=0; foreach ($_productCollection as $_product): ?>
+            <li class="item">
+
+                <div class="product-image-wrapper" style="max-width:<?php echo $imgWidth; ?>px;">
+                    <a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $this->stripTags($this->getImageLabel($_product, 'small_image'), null, true); ?>" class="product-image">
+                        <img id="product-collection-image-<?php echo $_product->getId(); ?>"
+                             src="<?php echo $helpImg->getImg($_product, $imgWidth, $imgHeight, 'small_image'); ?>"
+                             alt="<?php echo $this->stripTags($this->getImageLabel($_product, 'small_image'), null, true); ?>" />
+
+                        <?php if ($theme->getCfg('category/alt_image')): ?>
+                            <?php echo $theme->getAltImgHtml($_product, $imgWidth, $imgHeight); ?>
+                        <?php endif; ?>
+
+                        <?php echo $helpLabels->getLabels($_product); //Product labels ?>
+                    </a>
+                    <?php //Add-to links
+                    if ($gc['display_addtolinks'] != 0 && $gc['addtolinks_simple'])
+                    {
+                        if ($gc['display_addtolinks'] == 1) //Display on hover
+                            echo $helpTemplate->getCategoryAddtoLinksComplex_2($_product, $this->getAddToCompareUrl($_product), 'addto-links-icons addto-onimage display-onhover');
+                        else //Always display
+                            echo $helpTemplate->getCategoryAddtoLinksComplex_2($_product, $this->getAddToCompareUrl($_product), 'addto-links-icons addto-onimage');
+                    }
+                    ?>
+                </div> <!-- end: product-image-wrapper -->
+
+                <?php if ($gc['display_name'] != 0): ?>
+                    <h2 class="product-name<?php echo $productNameClasses; ?>"><a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $this->stripTags($_product->getName(), null, true) ?>"><?php echo $_helper->productAttribute($_product, $_product->getName(), 'name') ?></a></h2>
+                <?php endif; ?>
+
+                <?php
+                //If at least one element was set as "Display on hover" but no element was set as "Display":
+                //aggregate classes from those elements and apply them to the "actions" container.
+                $actionsClasses = '';
+                if ($gc['display_addtocart'] == 1 || ($gc['display_addtolinks'] == 1 && !$gc['addtolinks_simple']))
+                {
+                    $actionsClasses = ' display-onhover';
+                }
+                if ($gc['display_addtocart'] == 2 || ($gc['display_addtolinks'] == 2 && !$gc['addtolinks_simple']))
+                {
+                    $actionsClasses = '';
+                }
+                ?>
+
+                <div class="actions clearer<?php echo $actionsClasses; ?>">
+                    <?php //Cart button ?>
+                    <?php if ($gc['display_addtocart'] != 0): ?>
+                        <?php if ($_product->isSaleable()): ?>
+                            </br><button type="submit" title="<?php echo $this->__('Order')?>" class="button btn-cart" onclick="setLocation('<?php echo $this->getProductUrl($_product) ?>')"><span><span><?php echo $this->__('Order')?></span></span></button>
+                        <?php else: ?>
+                            <p class="availability out-of-stock"><span><?php echo $this->__('Out of stock') ?></span></p>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                </div> <!-- end: actions -->
+            </li>
+        <?php if ($i+1 == $_collectionSize ) break; $i++; endforeach; ?>
+    </ul>
+    <script type="text/javascript">
+        //&lt;![CDATA[
+        jQuery(function($) {
+            $('.add-to-cart-qty .button-up').click(function() {
+                $qty = $(this).parent().find('.qty');
+                qty = parseInt($qty.val()) + 1;
+                $qty.val(qty);
+            });
+
+            $('.add-to-cart-qty .button-down').click(function() {
+                $qty = $(this).parent().find('.qty');
+                qty = parseInt($qty.val()) - 1;
+                if (qty <= 0)
+                    qty = 1;
+                $qty.val(qty);
+            });
+        });
+        //]]&gt;
+    </script>
+</div>

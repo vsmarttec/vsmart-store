@@ -1,0 +1,59 @@
+<?php
+    $_productCollection = $this->getMyCollection();
+    $category = $this->catName();
+    $_helper = $this->helper('catalog/output');
+    $_collectionSize = $this->productsAmount();
+    $randId = rand (0, 9999);
+?>
+<?php // Slider ?>
+<div class="slider-container widget-container">
+    <?php if($this->getLayout()->createBlock('cms/block')->setBlockId('slider_text_box')->toHtml()): ?>
+	<div class="slider-text-box grid_3 alpha">
+	    <?php echo $this->getLayout()->createBlock('cms/block')->setBlockId('slider_text_box')->toHtml() ?>
+	</div>
+    <?php endif; ?>
+    <div class="home-container<?php if($this->getLayout()->createBlock('cms/block')->setBlockId('slider_text_box')->toHtml()){echo ' grid_9 omega';}else{echo ' no-static-block grid_12';} ?>">
+	<div class="home-slider-conainer">
+	    <div class="home-slider es-carousel-wrapper" id="home-slider-<?php echo $randId; ?>">
+		<ul class="products-grid carousel-ul">
+		    <?php $i=0; foreach ($_productCollection as $_product): ?>
+			<?php $_productNameStripped = $this->stripTags($_product->getName(), null, true); ?>
+			<li class="item">
+			    <div class="product-img-box">
+				<a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $this->stripTags($this->getImageLabel($_product, 'small_image'), null, true) ?>" class="product-image"><img src="<?php echo $this->helper('catalog/image')->init($_product, 'small_image')->constrainOnly(TRUE)->keepAspectRatio(TRUE)->keepFrame(FALSE)->resize(420, null); ?>" alt="<?php echo $this->stripTags($this->getImageLabel($_product, 'small_image'), null, true) ?>" /><span class="image-box"></span></a>
+			
+				<a href="<?php echo $_product->getProductUrl() ?>" class="icon-product-details"></a>
+			    </div>
+			    <h2 class="product-name"><a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $this->stripTags($_product->getName(), null, true) ?>"><?php echo $_helper->productAttribute($_product, $_product->getName(), 'name') ?></a></h2>
+			    <?php echo $this->getPriceHtml($_product, true) ?>
+			    <?php if($_product->getRatingSummary()): ?>
+			    <?php echo $this->getReviewsSummaryHtml($_product, 'short') ?>
+			    <?php endif; ?>
+			    <div class="clear"></div>
+			</li>
+		    <?php if (++$i > $_collectionSize-1 ) break; endforeach ?>
+		</ul>
+	    </div>
+	    <div class="clear"></div>
+	</div>	
+    </div>
+    <div class="clear"></div>
+    <div class = 'next'><em>&nbsp;</em><span>&nbsp;</span></div>
+    <div class = 'prev unselectable'><em>&nbsp;</em><span>&nbsp;</span></div>
+</div>
+
+<script type="text/javascript">decorateGeneric($$('ul.products-grid'), ['odd','even','first','last'])</script>
+<script type="text/javascript">
+jQuery(document).ready(function(){
+    jQuery('#home-slider-<?php echo $randId; ?>').iosSlider({
+      responsiveSlideWidth: true,
+      snapToChildren: true,
+      desktopClickDrag: true,
+      infiniteSlider: true,
+      navSlideSelector: '.sliderNavi .naviItem',
+      navNextSelector: '.widget-container .next',
+      navPrevSelector: '.widget-container .prev'
+    });
+  });
+</script>
+    

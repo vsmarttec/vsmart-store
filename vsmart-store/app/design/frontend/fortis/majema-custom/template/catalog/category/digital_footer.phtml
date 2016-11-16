@@ -1,0 +1,20 @@
+<div class="row">
+	<div class="z-container clearfix">
+	  <div class="z-blocks grid_8 alpha omega">
+	    <div class="z-block grid_4 alpha">
+		  <?php echo $this->getLayout()->createBlock('zblocks/block')->setPosition('digital_block_1')->toHtml(); ?>
+		</div>
+		<div class="z-block grid_4 alpha omega">
+		  <?php echo $this->getLayout()->createBlock('zblocks/block')->setPosition('digital_block_2')->toHtml(); ?>
+		</div>
+		<div class="z-block grid_8 alpha omega">
+		  <?php echo $this->getLayout()->createBlock('zblocks/block')->setPosition('digital_block_3')->toHtml(); ?>
+		</div>
+	  </div>
+	  <div class="social-block grid_4 alpha omega">
+	
+		<?php  echo $this->getLayout()->createBlock('wordpress/sidebar_widget_posts')->setTemplate('wordpress/sidebar/widget/forskolan-posts.phtml')->setCategoryId('105')->toHtml(); ?>
+	  </div>
+	</div>
+</div>
+

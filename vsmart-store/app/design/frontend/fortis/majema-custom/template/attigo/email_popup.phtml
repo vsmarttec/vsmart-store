@@ -1,0 +1,103 @@
+<?php if(!Mage::getModel('core/cookie')->get("emailpopup")): ?>
+	<div id="email_popup" style="display: none;">
+		<div class="inner_wrapper">
+			<h4 class="page-title"><?php echo $this->__('Welcome to download our bonus content!')?></h4>
+			<h3><?php echo $this->__('Leave your e-mail address to receive free access to Majemas archives, including sample chapter, crafts and more.')?></h3>
+			<form id="frmEmail" name="frmEmail" onsubmit="return false;">
+				<div class="inner_div">
+					<input class="validate-email input-text" type="text" id="txtEmail" name="emailid" value="" placeholder="<?php echo $this->__('Email Address');?>"/>
+					<span class="asterisk">*</span>
+					<span class="val_email"></span>
+				</div>
+				<?php
+				$currentUrl = Mage::helper('core/url')->getCurrentUrl();
+				$url = Mage::getSingleton('core/url')->parseUrl($currentUrl);
+				$path = $url->getPath();
+				?>
+				<input type="hidden" name="path" id="path" value="<?php echo $path; ?>" />
+				<input type="hidden" name="cat_id" id="cat_id" value="<?php echo $this->getRequest()->getParam('id'); ?>" />
+				<button id="enter_email_btn" class="button" onClick="submitEmail(this);"><span><span><?php echo $this->__('Submit')?></span></span></button>
+
+		</div>
+
+		</form>
+		<div id="response-message"></div>
+	</div>
+	<style>
+		#cboxLoadedContent{background:#FFFFFF;}
+		#cboxClose{position: absolute;right:5px;bottom:5px;}
+		#cboxLoadedContent h4.page-title{font-size: 16px;}
+		#cboxLoadedContent .inner_wrapper h3 {font-size: 15px;font-weight: normal;}
+		#cboxLoadedContent #txtEmail{width:250px;}
+	</style>
+	<script type="text/javascript">
+		var isSuccess = false;
+		var emailForm = new VarienForm('frmEmail',true);
+		/*$('txtEmail').observe('keypress', bindLoginPost);
+		 function bindLoginPost(evt){
+		 if (evt.keyCode == Event.KEY_RETURN) {
+		 emailForm.submit();
+		 }
+		 }*/
+		function submitEmail(button){
+			if(emailForm.validator &&  emailForm.validator.validate()){
+				//button.disabled = true;
+				new Ajax.Request('<?php echo $this->getUrl('attigoemail/email/save');?>',{
+					method: 'post',
+					parameters: $('frmEmail').serialize(),
+					onSuccess:successSave,
+					onFailure:failEmail
+				});
+			}
+		}
+		function failEmail(response)
+		{
+			jQuery.colorbox.close();
+		}
+		function successSave(response)
+		{
+			if (response && response.responseText){
+				try{
+					elementValues = eval('(' + response.responseText + ')');
+					$('response-message').innerHTML = elementValues.message;
+					if(elementValues.ERROR==false)
+					{
+						if(typeof(Storage) !== "undefined") {
+							sessionStorage.emailpopup = 1;
+						}
+						var d = new Date();
+						d.setTime(d.getTime() + (365*24*60*60*1000));
+						var expires = "expires="+d.toUTCString()+";path=/";
+						document.cookie = "emailpopup=1; " + expires;
+						isSuccess = true;
+						setTimeout(function(){jQuery.colorbox.close();},1500);
+					}
+				}
+				catch (e) {
+					elementValues = {};
+					$('response-message').innerHTML = e.message	;
+				}
+				setTimeout(function(){ $('response-message').innerHTML ="";},1500);
+			}
+		}
+		/* var jq= jQuery.noConflict();*/
+		jQuery(document).ready(function(){
+			var emailpopup = jQuery('#email_popup');//.css('display','block');
+			jQuery('.email-popup-active a').colorbox({html:emailpopup,
+				width:500,
+				height:250,
+				overlayClose:false,
+				close:'<?php echo $this->__('Close'); ?>',
+				onClosed:function(){ if(isSuccess){window.location.href = jQuery(this).attr('href');}}
+			});
+			jQuery('.category-article a').click(function(event){
+				jQuery('#email_popup').css('display','block');
+				if ((typeof(Storage) !== "undefined" && sessionStorage.emailpopup==1))
+				{
+					window.location.href = jQuery(this).attr('href');
+					return false;
+				}
+			});
+		});
+	</script>
+<?php endif; ?>

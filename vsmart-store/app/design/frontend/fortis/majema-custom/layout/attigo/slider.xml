@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<layout version="0.1.0">
+    <cms_index_index>
+         <reference name="head">
+            <!--<action method="addItem" ifconfig="slider/general/is_active"><type>skin_js</type><name>attigo/js/jquery-1.8.3.min.js</name></action>-->
+			<!--<action method="addItem" ifconfig="slider/general/is_active"><type>skin_js</type><name>attigo/js/jquery.easing-1.3.js</name></action>-->
+            <action method="addItem" ifconfig="slider/general/is_active"><type>skin_js</type><name>attigo/js/jquery.royalslider.min.js</name></action>
+			<action method="addItem" ifconfig="slider/general/is_active"><type>skin_js</type><name>attigo/js/jquery.noConflict.js</name></action>
+			<action method="addItem" ifconfig="slider/general/is_active"><type>skin_js</type><name>attigo/css/colorbox/jquery.colorbox.js</name></action>
+            <action method="addItem" ifconfig="slider/general/is_active"><type>skin_css</type><name>attigo/css/royalslider.css</name></action>
+            <action method="addItem" ifconfig="slider/general/is_active"><type>skin_css</type><name>attigo/css/rs-default.css</name></action>
+            <action method="addItem" ifconfig="slider/general/is_active"><type>skin_css</type><name>attigo/css/rs-minimal.css</name></action>
+			<action method="addItem" ifconfig="slider/general/is_active"><type>skin_css</type><name>attigo/css/rs-universal.css</name></action>
+			<action method="addItem" ifconfig="slider/general/is_active"><type>skin_css</type><name>attigo/css/colorbox/colorbox.css</name></action>
+        </reference>
+    </cms_index_index>
+    <catalog_category_default>
+         <reference name="head">
+            <!--<action method="addItem" ifconfig="slider/general/is_active"><type>skin_js</type><name>attigo/js/jquery-1.8.3.min.js</name></action>-->
+			<!--<action method="addItem" ifconfig="slider/general/is_active"><type>skin_js</type><name>attigo/js/jquery.easing-1.3.js</name></action>-->
+            <action method="addItem" ifconfig="slider/general/is_active"><type>skin_js</type><name>attigo/js/jquery.royalslider.min.js</name></action>
+			<action method="addItem" ifconfig="slider/general/is_active"><type>skin_js</type><name>attigo/js/jquery.noConflict.js</name></action>
+			<action method="addItem" ifconfig="slider/general/is_active"><type>skin_js</type><name>attigo/css/colorbox/jquery.colorbox.js</name></action>
+            <action method="addItem" ifconfig="slider/general/is_active"><type>skin_css</type><name>attigo/css/royalslider.css</name></action>
+            <action method="addItem" ifconfig="slider/general/is_active"><type>skin_css</type><name>attigo/css/rs-default.css</name></action>
+            <action method="addItem" ifconfig="slider/general/is_active"><type>skin_css</type><name>attigo/css/rs-minimal.css</name></action>
+			<action method="addItem" ifconfig="slider/general/is_active"><type>skin_css</type><name>attigo/css/rs-universal.css</name></action>
+			<action method="addItem" ifconfig="slider/general/is_active"><type>skin_css</type><name>attigo/css/colorbox/colorbox.css</name></action>
+        </reference>
+    </catalog_category_default>        
+</layout>

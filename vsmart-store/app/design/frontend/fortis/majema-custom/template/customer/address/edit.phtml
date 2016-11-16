@@ -1,0 +1,333 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE_AFL.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magento.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magento.com for more information.
+ *
+ * @category    design
+ * @package     base_default
+ * @copyright   Copyright (c) 2006-2015 X.commerce, Inc. (http://www.magento.com)
+ * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+?>
+<?php
+/**
+ * Edit customer address template
+ *
+ * @see Mage_Customer_Block_Address_Edit
+ */
+?>
+<?php if($this->getTitle()): ?>
+<div class="page-title">
+    <h1><?php echo $this->getTitle() ?></h1>
+</div>
+<?php endif; ?>
+<?php echo $this->getMessagesBlock()->toHtml() ?>
+<form action="<?php echo $this->getSaveUrl() ?>" method="post" id="form-validate">
+      <div class="fieldset" id="contactinfo">
+    <?php echo $this->getBlockHtml('formkey')?>
+    <input type="hidden" name="success_url" value="<?php echo $this->getSuccessUrl() ?>" />
+    <input type="hidden" name="error_url" value="<?php echo $this->getErrorUrl() ?>" />
+        <h2 class="legend"><?php echo $this->__('Contact Information') ?></h2>
+        <ul class="form-list">
+            <li class="fields">
+                <?php echo $this->getNameBlockHtml() ?>
+            </li>
+            <li class="wide">
+                <label for="company"><?php echo $this->__('Company') ?></label>
+                <div class="input-box">
+                    <input type="text" name="company" id="company" title="<?php echo Mage::helper('core')->quoteEscape($this->__('Company')) ?>" value="<?php echo $this->escapeHtml($this->getAddress()->getCompany()) ?>" class="input-text <?php echo $this->helper('customer/address')->getAttributeValidationClass('company') ?>" />
+                </div>
+            </li>
+            <li class="fields">
+                <?php if(Mage::getSingleton('customer/session')->getCustomerGroupId() != 5) : ?>
+                <div class="field">
+                    <label for="telephone" class="required"><em>*</em><?php echo $this->__('Telephone') ?></label>
+                    <div class="input-box">
+                        <input type="text" name="telephone" value="<?php echo $this->escapeHtml($this->getAddress()->getTelephone()) ?>" title="<?php echo Mage::helper('core')->quoteEscape($this->__('Telephone')) ?>" class="input-text  <?php echo $this->helper('customer/address')->getAttributeValidationClass('telephone') ?>" id="telephone" />
+                    </div>
+                </div>
+            <?php endif; ?>
+                <div class="field">
+                    <label for="fax"><?php echo $this->__('Fax') ?></label>
+                    <div class="input-box">
+                        <input type="text" name="fax" id="fax" title="<?php echo Mage::helper('core')->quoteEscape($this->__('Fax')) ?>" value="<?php echo $this->escapeHtml($this->getAddress()->getFax()) ?>" class="input-text <?php echo $this->helper('customer/address')->getAttributeValidationClass('fax') ?>" />
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="fieldset">
+        <h2 class="legend"><?php echo $this->__('Address') ?></h2>
+        <?php if(Mage::getSingleton('customer/session')->getCustomerGroupId() == 5) : ?>
+            <div class="field" id="sclserch" >
+                        <label for="schoolsearch">Sök din skola via namn, postnummer eller ort</label>
+                        <div class="input-box">
+                            <input type="text" id="schoolsearch" class="input-text required-entry" />
+             </div>
+            </div>
+                        <div id='loadingmessage' class="field" style="display: none"></div>
+                        <div id="search-results" class="" style="display:none;"> </div>
+                        <div id="selected-address" class=""> </div>
+                
+                    <script>
+                    var flagAlert = false;
+                        jQuery(function ($) {
+                            
+                            $('#company,#street_1,#street_2,#postcode,#city,#country,#region,#majema_school_id').closest('li').hide();
+                            $('#contactinfo').hide();
+                            // Hide address fields
+                            var schools; // Variable for search results to support selecting one
+
+                            // To prevent hitting search service to hard..
+                            var searchDelayMs = 300; // ...delay time between last keystroke and search
+                            var minimumQueryLength = 3; // ...and require a minimum length for a search query
+                            var lastQuery; // ...and remember last search query to avoid searching for the same thing
+                            var currentSearch; // ...and keep track of the current request so that it can be aborted
+
+                            var searchTimeout; // Variable for search timeout to be able to cancel it on keydown
+                            var $searchResultsDiv = $('#search-results');
+
+                            // Perform a search and display the results
+                            function search(query) {
+
+                                // Abort any current request to prevent a initial slower request for a short string
+                                // to pop up a long result set, replacing a later search for a longer search string
+                                if (currentSearch) {
+                                    currentSearch.abort();
+                                }
+                //$('#search-results').css('display','none');
+                $('#loadingmessage').css('display','block');
+                // $('#loadingmessage').show();
+                                currentSearch = $.ajax({
+                                    url: '<?php echo $this->getUrl('schoolsearch/searchschool/searchschool') ?>',
+                                    dataType: 'json',
+                                    data: {q: query}
+                                }).done(function (foundSchools) {
+                                        currentSearch = null;
+                    $searchResultsDiv.hide().empty();
+                                        schools = foundSchools;
+                    $('#loadingmessage').css('display','none');
+                    if(schools=="")
+                    {
+                    $("#advice-required-entry-schoolsearch").remove();
+                    $("#schoolsearch").after("<div id='advice-required-entry-schoolsearch' class='validation-advice-schoolsearch' style='color:red;margin-bottom: 20px;'><?php echo $this->__("Oops, something seems to have gone wrong!Try to enter the schools name again and wait a few seconds while our school directory is searched.If your school does not come up - so is your school probably not in our customer and we ask you to contact us by info@majema.se,chat or phone 08-716 67 95 so we can set up your school.regards,We at Majema") ; ?></div>");
+                    return;
+                    }
+                    else
+                    {
+                    $("#advice-required-entry-schoolsearch").remove();
+                    }
+
+                                        foundSchools.each(function (school, i) {                                            
+                                            // Create elements for each search hit
+                                            var singleResult = $('<div><strong>' + school.school['name'] + '</strong><p><span class="streetAddress">' + school.shipping['street1'] + '</span><br /><span class="postalCode">' + school.shipping['postcode'] + '</span><br /><span class="postalAddress">' + school.shipping['city'] + '</span></p></div>');
+                                            $('<div>')
+                                                .data('index', i)
+                                                .addClass('wrapper')
+                                                .append(singleResult)
+                                                    /*$('<div>')
+                                                        .append($('<strong>').text(school.school['name']))
+                                                        .append($('<p>')
+                                                            .append($('<span class="streetAddress">').text(school.shipping['street1']))
+                                                            .append($('<br>'))
+                                                            .append($('<span class="postalCode">').text(school.shipping['postcode']))
+                                                            .append(' ')
+                                                            .append($('<span class="postalAddress">').text(school.shipping['city']))
+                                                        )
+                                                )*/
+                                                .appendTo($searchResultsDiv);
+                                        });
+                                        $searchResultsDiv.show()
+                                    });
+                            }
+
+                            $('#schoolsearch').on('keyup', function () {
+                                // Don't search for short strings, empty strings or same search as previous one
+                                var query = $.trim($(this).val());
+                                if (query.length < minimumQueryLength || query == lastQuery) {
+                                    return;
+                                }
+
+                                // Remember current query
+                                lastQuery = query;
+
+                                // Cancel any search that is about to happen
+                                clearTimeout(searchTimeout);
+
+                                // Search after a short delay to prevent hammering the API unnecessarily
+                                searchTimeout = setTimeout(function () {
+                                    search(query);
+                                }, searchDelayMs);
+                            });
+
+                            // This is what happen when a search hit is clicked
+                            $('#search-results').on('click', '.wrapper', function () {
+                            $("#advice-required-entry-schoolsearch").remove();
+                                var school = schools[$(this).data('index')];
+                                var singleResult = $('<div><strong>' + school.school.name + '</strong><p><span class="streetAddress">' + school.shipping.street1 + '</span><br /><span class="postalCode">' + school.shipping.postcode + '</span><br /><span class="postalAddress">' + school.shipping.city + '</span></p></div>')
+                                $('#selected-address').html(singleResult);
+                                // Somehow the clicked school should be visible to the user even when the search results
+                                // is hidden. Right now this is done in the search field but there is probably a better place.
+                                $('#schoolsearch').val(school.school.name);
+                                $('#majema_school_id').val(school.school.id);
+
+                                // Set billings fields with data from selected school
+                                $('company').val(school.billing.company);
+                                $('#street_1').val(school.billing.street1);
+                                $('#street_2').val(school.billing.street2);
+                                $('#zip').val(school.billing.postcode);
+                                $('#city').val(school.billing.city);
+                                //$('#country').val((school.billing.country || 'SE').toUpperCase());
+                                $('#country').val((school.billing.country || 'SE').toUpperCase());
+                            
+                                var $selectedSchoolBilling = $('.selected-school.billing');
+                                $selectedSchoolBilling.hide();
+                                $selectedSchoolBilling.find('strong').text(school.billing.company);
+                                var bstreet = school.billing.street1;
+                                if(school.billing.street2!="")
+                                {
+
+                                    bstreet +='<br/>'+school.billing.street2;
+                                }
+                                $selectedSchoolBilling.find('.streetAddress').html(bstreet);
+                                $selectedSchoolBilling.find('.postalCode').text(school.billing.postcode);
+                                $selectedSchoolBilling.find('.postalAddress').text(school.billing.city);
+                                $selectedSchoolBilling.show();
+                                
+                                var $selectedSchoolBillingshipping = $('.selected-school.billing.shipping');
+                                $selectedSchoolBillingshipping.hide();
+                                $selectedSchoolBillingshipping.find('strong').text(school.billing.company);
+                                $selectedSchoolBillingshipping.find('.streetAddress').html(bstreet);
+                $selectedSchoolBillingshipping.find('.postalCode').text(school.billing.postcode);
+                                $selectedSchoolBillingshipping.find('.postalAddress').text(school.billing.city);
+                                $selectedSchoolBillingshipping.show();
+                                
+                                var $selectedSchoolShipping = $('.selected-school.shipping');
+                                $selectedSchoolShipping.hide();
+                                $selectedSchoolShipping.find('strong').text(school.school.name);
+                                var sstreet = school.shipping.street1;
+                                if(school.shipping.street2!="")
+                                {
+                    
+                                    sstreet +='<br>'+school.shipping.street2;
+                                }
+                                $selectedSchoolShipping.find('.streetAddress').html(sstreet);
+                                $selectedSchoolShipping.find('.postalCode').text(school.shipping.postcode);
+                                $selectedSchoolShipping.find('.postalAddress').text(school.shipping.city);
+                                $selectedSchoolShipping.show();
+                              //  $('#billing\\:majema_invoiceref').closest('li').show();
+
+                                $searchResultsDiv.hide();
+                            });
+                        });
+                    </script>
+        <?php endif; ?>
+        <ul class="form-list">
+        <?php $_streetValidationClass = $this->helper('customer/address')->getAttributeValidationClass('street'); ?>
+            <li class="wide">
+                <label for="street_1" class="required"><em>*</em><?php echo $this->__('Street Address') ?></label>
+                <div class="input-box">
+                    <input type="text" name="street[]" value="<?php echo $this->escapeHtml($this->getAddress()->getStreet(1)) ?>" title="<?php echo Mage::helper('core')->quoteEscape($this->__('Street Address')) ?>" id="street_1" class="input-text <?php echo $_streetValidationClass ?>" />
+                </div>
+            </li>
+        <?php $_streetValidationClass = trim(str_replace('required-entry', '', $_streetValidationClass)); ?>
+        <?php for ($_i = 2, $_n = $this->helper('customer/address')->getStreetLines(); $_i <= $_n; $_i++): ?>
+            <li class="wide">
+                <div class="input-box">
+                    <input type="text" name="street[]" value="<?php echo $this->escapeHtml($this->getAddress()->getStreet($_i)) ?>" title="<?php echo Mage::helper('core')->quoteEscape($this->__('Street Address %s', $_i)) ?>" id="street_<?php echo $_i ?>" class="input-text <?php echo $_streetValidationClass ?>" />
+                </div>
+            </li>
+        <?php endfor; ?>
+            <?php if ($this->helper('customer/address')->isVatAttributeVisible()) : ?>
+            <li class="wide">
+                <label for="vat_id"><?php echo $this->__('VAT Number') ?></label>
+                <div class="input-box">
+                    <input type="text" name="vat_id" value="<?php echo $this->escapeHtml($this->getAddress()->getVatId()) ?>" title="<?php echo Mage::helper('core')->quoteEscape($this->__('VAT Number')) ?>" id="vat_id" class="input-text <?php echo $this->helper('customer/address')->getAttributeValidationClass('vat_id') ?>" />
+                </div>
+            </li>
+            <?php endif; ?>
+            <li class="fields">
+                <div class="field">
+                    <label for="city" class="required"><em>*</em><?php echo $this->__('City') ?></label>
+                    <div class="input-box">
+                        <input type="text" name="city" value="<?php echo $this->escapeHtml($this->getAddress()->getCity()) ?>"  title="<?php echo Mage::helper('core')->quoteEscape($this->__('City')) ?>" class="input-text <?php echo $this->helper('customer/address')->getAttributeValidationClass('city') ?>" id="city" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="region_id" class="required"><em>*</em><?php echo $this->__('State/Province') ?></label>
+                    <div class="input-box">
+                        <select id="region_id" name="region_id" title="<?php echo Mage::helper('core')->quoteEscape($this->__('State/Province')) ?>" class="validate-select" style="display:none;">
+                           <option value=""><?php echo $this->__('Please select region, state or province') ?></option>
+                        </select>
+                        <script type="text/javascript">
+                        //<![CDATA[
+                            $('region_id').setAttribute('defaultValue',  "<?php echo $this->getAddress()->getRegionId() ?>");
+                        //]]>
+                        </script>
+                        <input type="text" id="region" name="region" value="<?php echo $this->escapeHtml($this->getAddress()->getRegion()) ?>"  title="<?php echo Mage::helper('core')->quoteEscape($this->__('State/Province')) ?>" class="input-text <?php echo $this->helper('customer/address')->getAttributeValidationClass('region') ?>" />
+                    </div>
+                </div>
+            </li>
+            <li class="fields">
+                <div class="field">
+                    <label for="zip" class="required"><em>*</em><?php echo $this->__('Zip/Postal Code') ?></label>
+                    <div class="input-box">
+                        <input type="text" name="postcode" value="<?php echo $this->escapeHtml($this->getAddress()->getPostcode()) ?>" title="<?php echo Mage::helper('core')->quoteEscape($this->__('Zip/Postal Code')) ?>" id="zip" class="input-text validate-zip-international <?php echo $this->helper('customer/address')->getAttributeValidationClass('postcode') ?>" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="country" class="required"><em>*</em><?php echo $this->__('Country') ?></label>
+                    <div class="input-box">
+                        <?php echo $this->getCountryHtmlSelect() ?>
+                    </div>
+                </div>
+            </li>
+
+            <li<?php if($this->canSetAsDefaultBilling()) echo ' class="control"' ?>>
+                <?php if($this->isDefaultBilling()): ?>
+                    <strong><?php echo $this->__('Default Billing Address') ?></strong>
+                <?php elseif($this->canSetAsDefaultBilling()): ?>
+                    <input type="checkbox" id="primary_billing" name="default_billing" value="1" title="<?php echo Mage::helper('core')->quoteEscape($this->__('Use as My Default Billing Address')) ?>" class="checkbox" /><label for="primary_billing"><?php echo $this->__('Use as my default billing address') ?></label>
+                <?php else: ?>
+                    <input type="hidden" name="default_billing" value="1" />
+                <?php endif; ?>
+            </li>
+            <li<?php if($this->canSetAsDefaultShipping()) echo ' class="control"' ?>>
+                <?php if($this->isDefaultShipping()): ?>
+                    <strong><?php echo $this->__('Default Shipping Address') ?></strong>
+                <?php elseif($this->canSetAsDefaultShipping()): ?>
+                    <input type="checkbox" id="primary_shipping" name="default_shipping" value="1" title="<?php echo Mage::helper('core')->quoteEscape($this->__('Use as My Default Shipping Address')) ?>" class="checkbox" /><label for="primary_shipping"><?php echo $this->__('Use as my default shipping address') ?></label>
+                <?php else: ?>
+                    <input type="hidden" name="default_shipping" value="1" />
+                <?php endif; ?>
+            </li>
+        </ul>
+    </div>
+    <div class="buttons-set">
+        <p class="required"><?php echo $this->__('* Required Fields') ?></p>
+        <p class="back-link"><a href="<?php echo $this->escapeUrl($this->getBackUrl()) ?>"><small>&laquo; </small><?php echo $this->__('Back') ?></a></p>
+        <button data-action="save-customer-address" type="submit" title="<?php echo Mage::helper('core')->quoteEscape($this->__('Save Address')) ?>" class="button"><span><span><?php echo $this->__('Save Address') ?></span></span></button>
+    </div>
+</form>
+<script type="text/javascript">
+//<![CDATA[
+    var dataForm = new VarienForm('form-validate', true);
+    new RegionUpdater('country', 'region', 'region_id', <?php echo $this->helper('directory')->getRegionJson() ?>, undefined, 'zip');
+//]]>
+</script>

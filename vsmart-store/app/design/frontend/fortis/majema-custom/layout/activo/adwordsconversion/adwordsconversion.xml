@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<!--
+/**
+* Activo Extensions
+*
+* NOTICE OF LICENSE
+*
+* This source file is subject to the Activo Commercial License
+* that is available through the world-wide-web at this URL:
+* http://extensions.activo.com/license_professional
+*
+* @copyright   Copyright (c) 2014 Activo Extensions (http://extensions.activo.com)
+* @license     Commercial
+*/
+-->
+<layout version="0.1.0">
+    <default>
+        <reference name="before_body_end">
+			
+            <block type="adwordsconversion/remarket"   name="remarekting.code" >
+                <action method="setPageType">
+                    <type>other</type>
+                </action>
+                <action method="setTemplate">
+                    <template>activo/adwordsconversion/remarketing.phtml</template>
+                </action>			
+            </block>
+        </reference>
+		<reference name="head">
+			<block type="adwordsconversion/facebookretargeting"  name="adwordsconversion.facebookretargeting" as="adwordsconversion.facebookretargeting">
+			</block>
+		</reference>
+    </default>
+    <catalog_product_view>
+        <reference name="remarekting.code">
+            <action method="setPageType">
+                <type>product</type>
+            </action>
+        </reference>
+    </catalog_product_view>
+	
+	
+    <checkout_cart_index>
+        <reference name="remarekting.code">
+            <action method="setPageType">
+                <type>cart</type>
+            </action>
+        </reference>
+    </checkout_cart_index>
+	
+
+    <checkout_onepage_success translate="label">
+
+        <reference name="remarekting.code">
+            <action method="setPageType">
+                <type>purchase</type>
+            </action>
+        </reference>
+		
+        <reference name="before_body_end">
+            <block type="adwordsconversion/code" name="adwordsconversion.code" after="-" />
+        </reference>
+		
+        <reference name="head">
+            <block type="adwordsconversion/facebookpixel"  name="adwordsconversion.facebookpixel" as="adwordsconversion.facebookpixel.checkout">
+            </block>
+        </reference>
+		
+    </checkout_onepage_success>
+</layout>

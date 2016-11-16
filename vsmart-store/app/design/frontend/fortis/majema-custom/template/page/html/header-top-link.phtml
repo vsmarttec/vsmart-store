@@ -1,0 +1,37 @@
+<ul class="links">
+
+        <li class=" first" >
+                <a href="tel:+4687166795" title="Telefon" class="feature-icon-hover">
+                                            <span class="icon force-no-bg-color i-mobile-w"></span>
+                                            <span class="label">Ring oss: <?php echo Mage::getStoreConfig('general/store_information/phone'); ?></span>
+                </a>
+            </li>
+
+        <li id="top-link-account">
+            <?php if (Mage::helper('customer')->isLoggedIn() ): ?>
+                <a href="<?php echo $this->getUrl('customer/account');?>" title="Skapa konto" class="feature-icon-hover">
+                                            <span class="icon force-no-bg-color i-account-w"></span>
+                                            <span class="label">Hantera konto</span>
+                </a>
+            <?php else: ?>
+                <a href="<?php echo $this->getUrl('customer/account');?>" title="Skapa konto" class="feature-icon-hover">
+                                            <span class="icon force-no-bg-color i-account-w"></span>
+                                            <span class="label">Skapa konto</span>
+                </a>
+            <?php endif; ?>
+            </li>
+                        <li class=" last" id="top-link-login">
+                        <?php if (Mage::helper('customer')->isLoggedIn() ): ?>
+                <a href="<?php echo Mage::helper('customer')->getLogoutUrl(); ?>" title="Logga out" class="feature-icon-hover">
+                                            <span class="icon force-no-bg-color i-logout-w"></span>
+                                            <span class="label">Logga ut</span>
+                </a>
+            <?php else: ?>
+                <a href="<?php echo Mage::helper('customer')->getLoginUrl(); ?>" title="Logga in" class="feature-icon-hover">
+                                            <span class="icon force-no-bg-color i-login-w"></span>
+                                            <span class="label">Logga in</span>
+                </a>
+            <?php endif; ?>
+            </li>
+</ul>
+

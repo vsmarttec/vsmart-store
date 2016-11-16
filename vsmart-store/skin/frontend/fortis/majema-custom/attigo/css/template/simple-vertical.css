@@ -1,0 +1,11 @@
+.simple-vertical {
+  width: 100%;
+  color: #FFF;
+}
+.blockSample {
+  left: 20px; 
+  top: 20px; 
+  padding: 6px 8px; 
+  background: #FFF; 
+  color:#000;
+}

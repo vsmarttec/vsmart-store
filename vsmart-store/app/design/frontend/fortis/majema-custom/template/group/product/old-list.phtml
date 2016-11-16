@@ -1,0 +1,276 @@
+<?php
+/**
+ * Magento
+ *
+ * @category    design
+ * @package     meigeetheme_default
+ * @copyright   Copyright (c) 2012 MeigeeTeam. (http://www.meigeeteam.com)
+ */
+?>
+<?php
+/**
+ * Product list template
+ *
+ * @see Mage_Catalog_Block_Product_List
+ */
+?>
+<?php
+$_productCollection=$this->getChildProductCollection();
+$_helper = $this->helper('catalog/output');
+$fancybox = MAGE::helper('ThemeOptions')->getThemeOptions('fancybox' );
+$grid = MAGE::helper('ThemeOptions')->getThemeOptions('grid' );
+?>
+<?php if(!count($_productCollection)): ?>
+    <p class="note-msg"><?php echo $this->__('There are no products matching the selection.') ?></p>
+<?php else: ?>
+    <section class="category-products">
+    <?php echo $this->getToolbarHtml() ?>
+    <div class="left">
+        <?php echo $this->getGroupListHtml();?>
+    </div>
+    <?php if ($grid == 'grid_large'): //////// Grid Large ?>
+        <ul class="products-grid large-grid">
+            <?php $i=0; foreach ($_productCollection as $_product):  ?>
+                <?php $_productNameStripped = $this->stripTags($_product->getName(), null, true); ?>
+                <li class="grid_3 item <?php if(!($i%4) or ($i==1)): ?>alpha<?php endif; ?> <?php if(!($i%3)): ?>omega<?php endif; ?>">
+                    <div class="grid-indent">
+                        <div class="product-box">
+                            <h2 class="product-name"><a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $this->stripTags($_product->getName(), null, true) ?>"><?php echo $_helper->productAttribute($_product, $_product->getName(), 'name') ?></a></h2>
+                            <?php echo $this->getPriceHtml($_product, true) ?>
+                            <?php if($_product->getRatingSummary()): ?>
+                                <?php echo $this->getReviewsSummaryHtml($_product, 'short') ?>
+                            <?php endif; ?>
+                            <div class="clear"></div>
+                            <div class="product-img-box">
+                                <?php /* Label New */ echo MAGE::helper('ThemeOptions')->getProductNewLabel($_product); ?>
+                                <a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $this->stripTags($this->getImageLabel($_product, 'small_image'), null, true) ?>" class="product-image"><div class="hover-box"><img src="<?php echo $this->helper('catalog/image')->init($_product, 'small_image')->constrainOnly(TRUE)->keepAspectRatio(TRUE)->keepFrame(FALSE)->resize(410, null); ?>" alt="<?php echo $this->stripTags($this->getImageLabel($_product, 'small_image'), null, true) ?>" /><?php /* Hover Image */ echo MAGE::helper('ThemeOptions')->getHoverImage($_product, 410); ?></div></a>
+                                <?php  // Fancybox
+                                if ($fancybox['fancybox_status'] && $fancybox['fancybox_listing'] == 1): ?>
+                                    <a class="fancybox category-gallery" title="<?php echo $_productNameStripped; ?>" href="<?php echo $this->helper('catalog/image')->init($_product, 'small_image'); ?>">&nbsp;</a>
+                                <?php endif;
+                                // End Fancybox ?>
+
+                            </div>
+                            <div class="actions">
+                                <ul class="add-to-links">
+                                    <?php if ($this->helper('wishlist')->isAllow()) : ?>
+                                        <li><a href="<?php echo $this->helper('wishlist')->getAddUrl($_product) ?>" class="link-wishlist"><?php echo $this->__('Add to Wishlist') ?></a></li>
+                                    <?php endif; ?>
+
+                                </ul>
+                                <?php if($_product->isSaleable()): ?>
+                                    <!-- START add to cart button with quantity -->
+                                    <div class="add-to-cart">
+                                        <form action="<?php echo $this->getAddToCartUrl($_product) ?>" method="post" id="product_addtocart_form_<?php echo $_product->getId(); ?>">
+                                            <label for="qty"><?php echo $this->__('Qty:') ?></label>
+                                            <input name="qty" type="text" class="input-text qty" id="qty" maxlength="12" value="1" />
+                                            <button type="button" title="<?php echo $this->__('Add to Cart') ?>" class="button btn-cart" onclick="productAddToCartForm_<?php echo $_product->getId(); ?>.submit()"><span><span><span><?php echo $this->__('Add to Cart') ?></span></span></span></button>
+                                        </form>
+
+                                        <script type="text/javascript">
+                                            var productAddToCartForm_<?php echo $_product->getId(); ?> = new VarienForm('product_addtocart_form_<?php echo $_product->getId(); ?>');
+                                            productAddToCartForm_<?php echo $_product->getId(); ?>.submit = function(){
+                                                if (this.validator.validate()) {
+                                                    this.form.submit();
+                                                }
+                                            }.bind(productAddToCartForm_<?php echo $_product->getId(); ?>);
+                                        </script>
+                                    </div>
+                                    <!-- END add to cart button with quantity -->
+                                <?php else: ?>
+                                    <p class="availability out-of-stock"><span><?php echo $this->__('Out of stock') ?></span></p>
+                                <?php endif; ?>
+
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            <?php endforeach ?>
+            <?php echo ($this->getRequest()->getParam('p'))?'<div id="ajax-loaded"></div>':''; ?>
+        </ul>
+        <script type="text/javascript">decorateGeneric($$('ul.products-grid'), ['odd','even','first','last'])</script>
+    <?php elseif ($grid == 'grid_standard'): //////// Standard Grid ?>
+        <ul class="products-grid">
+            <?php $i=1; foreach ($_productCollection as $_product): ?>
+                <?php $_productNameStripped = $this->stripTags($_product->getName(), null, true); ?>
+                <li class="grid_3 item <?php if(!($i%4) or ($i==1)): ?>alpha<?php endif; ?> <?php if(!($i%3)): ?>omega<?php endif; ?>">
+                    <div class="grid-indent">
+                        <div class="product-box">
+                            <a href="<?php echo $_product->getProductUrl() ?>">
+                                <div class="product-img-box">
+                                    <?php /* Label New */ echo MAGE::helper('ThemeOptions')->getProductNewLabel($_product); ?>
+                                    <div title="<?php echo $this->stripTags($this->getImageLabel($_product, 'small_image'), null, true) ?>" class="product-image">
+                                        <img src="<?php echo $this->helper('catalog/image')->init($_product, 'small_image')->constrainOnly(TRUE)->keepAspectRatio(TRUE)->keepFrame(FALSE)->resize(420, null); ?>" alt="<?php echo $this->stripTags($this->getImageLabel($_product, 'small_image'), null, true) ?>" />
+                                    </div>
+                                </div>
+                                <h2 class="product-name"><?php echo $_helper->productAttribute($_product, $_product->getName(), 'name') ?></h2>
+                                <ul>
+                                    <li><strong>Beställnr:</strong> <?php echo nl2br($_product->getSku()) ?></li>
+                                    <?php if($this->htmlEscape($_product->getData('school_year')) != null ): ?>
+                                        <li><strong>Årskurs:</strong> <?php echo $this->htmlEscape($_product->getData('school_year')); ?></li>
+                                    <?php endif; ?>
+                                </ul>
+                                <?php echo $this->getPriceHtml($_product, true) ?>
+                                <?php if($_product->getRatingSummary()): ?>
+                                    <?php echo $this->getReviewsSummaryHtml($_product, 'short') ?>
+                                <?php endif; ?>
+                                <div class="clear"></div>
+                                <p><?php echo $this->htmlEscape($_product->getData('mini_description')); ?></p>
+                            </a>
+                            <!-- #dialog is the id of a DIV defined in the code below -->
+                            <a class="quick-shop" href="#dialog" name="modal" id="<?php echo $_product->getId() ?>" url="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_LINK); ?>">Quickshop</a>
+                            <div class="actions">
+                                <ul class="add-to-links">
+                                    <?php if ($this->helper('wishlist')->isAllow()) : ?>
+                                        <li><a href="<?php echo $this->helper('wishlist')->getAddUrl($_product) ?>" class="link-wishlist"><?php echo $this->__('Add to Wishlist') ?></a></li>
+                                    <?php endif; ?>
+                                </ul>
+                                <?php if($_product->isSaleable()): ?>
+                                    <!-- START add to cart button with quantity -->
+                                    <div class="add-to-cart">
+                                        <form action="<?php echo $this->getAddToCartUrl($_product) ?>" method="post" id="product_addtocart_form_<?php echo $_product->getId(); ?>">
+                                            <label for="qty"><?php echo $this->__('Qty:') ?></label>
+                                            <input name="qty" type="text" class="input-text qty" id="qty" maxlength="12" value="1" />
+                                            <button type="button" title="<?php echo $this->__('Add to Cart') ?>" class="button btn-cart" onclick="productAddToCartForm_<?php echo $_product->getId(); ?>.submit()"><span><span><span><?php echo $this->__('Add to Cart') ?></span></span></span></button>
+                                        </form>
+
+                                        <script type="text/javascript">
+                                            var productAddToCartForm_<?php echo $_product->getId(); ?> = new VarienForm('product_addtocart_form_<?php echo $_product->getId(); ?>');
+                                            productAddToCartForm_<?php echo $_product->getId(); ?>.submit = function(){
+                                                if (this.validator.validate()) {
+                                                    this.form.submit();
+                                                }
+                                            }.bind(productAddToCartForm_<?php echo $_product->getId(); ?>);
+                                        </script>
+                                    </div>
+                                    <!-- END add to cart button with quantity -->
+                                <?php else: ?>
+                                    <p class="availability out-of-stock"><span><?php echo $this->__('Out of stock') ?></span></p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <?php $i++; endforeach ?>
+            <?php echo ($this->getRequest()->getParam('p'))?'<div id="ajax-loaded"></div>':''; ?>
+        </ul>
+        <script type="text/javascript">decorateGeneric($$('ul.products-grid'), ['odd','even','first','last'])</script>
+    <?php elseif ($grid == 'grid_small'): ?>
+        <ul class="products-grid small-grid">
+            <?php $i=0; foreach ($_productCollection as $_product): ?>
+                <?php $_productNameStripped = $this->stripTags($_product->getName(), null, true); ?>
+                <li class="item<?php if(($i-1)%4==0): ?> first alpha<?php elseif($i%4==0): ?> last omega<?php endif; ?>">
+                    <div class="grid-indent">
+                        <div class="product-box">
+                            <h2 class="product-name"><a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $this->stripTags($_product->getName(), null, true) ?>"><?php echo $_helper->productAttribute($_product, $_product->getName(), 'name') ?></a></h2>
+                            <?php echo $this->getPriceHtml($_product, true) ?>
+                            <?php if($_product->getRatingSummary()): ?>
+                                <?php echo $this->getReviewsSummaryHtml($_product, 'short') ?>
+                            <?php endif; ?>
+                            <div class="clear"></div>
+                            <div class="product-img-box">
+                                <?php /* Label New */ echo MAGE::helper('ThemeOptions')->getProductNewLabel($_product); ?>
+                                <a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $this->stripTags($this->getImageLabel($_product, 'small_image'), null, true) ?>" class="product-image"><div class="hover-box"><img src="<?php echo $this->helper('catalog/image')->init($_product, 'small_image')->constrainOnly(TRUE)->keepAspectRatio(TRUE)->keepFrame(FALSE)->resize(420, null); ?>" alt="<?php echo $this->stripTags($this->getImageLabel($_product, 'small_image'), null, true) ?>" /><?php /* Hover Image */ echo MAGE::helper('ThemeOptions')->getHoverImage($_product, 420); ?></div></a>
+                                <?php if ($fancybox['fancybox_status'] && $fancybox['fancybox_listing'] == 1): ?>
+                                    <a class="fancybox category-gallery" title="<?php echo $_productNameStripped; ?>" href="<?php echo $this->helper('catalog/image')->init($_product, 'small_image'); ?>">&nbsp;</a>
+                                <?php endif;?>
+                            </div>
+                            <!-- #dialog is the id of a DIV defined in the code below -->
+                            <a class="quick-shop" href="#dialog" name="modal" id="<?php echo $_product->getId() ?>" url="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_LINK); ?>">Quickshop</a>
+                            <div class="actions">
+                                <ul class="add-to-links">
+                                    <?php if ($this->helper('wishlist')->isAllow()) : ?>
+                                        <li><a href="<?php echo $this->helper('wishlist')->getAddUrl($_product) ?>" class="link-wishlist"><?php echo $this->__('Add to Wishlist') ?></a></li>
+                                    <?php endif; ?>
+                                </ul>
+                                <?php if($_product->isSaleable()): ?>
+                                    <!-- START add to cart button with quantity -->
+                                    <div class="add-to-cart">
+                                        <form action="<?php echo $this->getAddToCartUrl($_product) ?>" method="post" id="product_addtocart_form_<?php echo $_product->getId(); ?>">
+                                            <label for="qty"><?php echo $this->__('Qty:') ?></label>
+                                            <input name="qty" type="text" class="input-text qty" id="qty" maxlength="12" value="1" />
+                                            <button type="button" title="<?php echo $this->__('Add to Cart') ?>" class="button btn-cart" onclick="productAddToCartForm_<?php echo $_product->getId(); ?>.submit()"><span><span><span><?php echo $this->__('Add to Cart') ?></span></span></span></button>
+                                        </form>
+                                        <script type="text/javascript">
+                                            var productAddToCartForm_<?php echo $_product->getId(); ?> = new VarienForm('product_addtocart_form_<?php echo $_product->getId(); ?>');
+                                            productAddToCartForm_<?php echo $_product->getId(); ?>.submit = function(){
+                                                if (this.validator.validate()) {
+                                                    this.form.submit();
+                                                }
+                                            }.bind(productAddToCartForm_<?php echo $_product->getId(); ?>);
+                                        </script>
+                                    </div>
+                                    <!-- END add to cart button with quantity -->
+                                <?php else: ?>
+                                    <p class="availability out-of-stock"><span><?php echo $this->__('Out of stock') ?></span></p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            <?php endforeach ?>
+            <?php echo ($this->getRequest()->getParam('p'))?'<div id="ajax-loaded"></div>':''; ?>
+        </ul>
+        <script type="text/javascript">decorateGeneric($$('ul.products-grid'), ['odd','even','first','last'])</script>
+    <?php endif; ///////////// Grid ?>
+    <div class="toolbar-bottom">
+        <?php echo $this->getToolbarHtml() ?>
+    </div>
+    </section>
+<?php endif; ?>
+
+<div id="boxes" categoryUrl="<?php echo $this->helper('core/url')->getCurrentUrl(); ?>">
+    <!-- Do not remove div#mask, because you'll need it to fill the whole screen -->
+    <div id="mask"></div>
+    <!-- #customize your modal window here -->
+    <div id="dialog" class="window">
+        <div id="product_data"></div>
+    </div>
+</div>
+<script>
+    jQuery(document).ready(function(){
+        jQuery('a[name="modal"]').click(function(e) {
+            e.preventDefault();
+            var baseUrl = jQuery(this).attr('url');
+            var productId = jQuery(this).attr('id');
+            jQuery('#product_data').html('<div style="text-align:center; color:#fff; font-size:14px; font-weight:bold;">Loading Product Information...</div>');
+            jQuery.ajax({
+                type: "POST",
+                url: baseUrl+"productbook",
+                data: "id="+productId,
+                success: function(msg){
+                    var response=msg.evalJSON(true);
+                    jQuery('#product_data').empty().append(response.html);
+                    var cartHtml=response.cartHtml;
+                    var isLogin=response.isLogin;
+                    getCartInfo(cartHtml,isLogin);
+                }
+            });
+            function getCartInfo(cartHtml,isLogin)
+            {
+                if(isLogin){
+                    jQuery('#cartInfo').empty().html('Updating cart info...');
+                }
+                jQuery('#cartInfo').empty().html(cartHtml);
+            }
+            var id = jQuery(this).attr('href');
+            var maskHeight = 0;
+            var maskWidth = 0;
+            jQuery('#mask').css({'width':maskWidth,'height':maskHeight, 'top':0});
+            var winH = jQuery(window).height();
+            var winW = jQuery(window).width();
+            jQuery(id).css('top',  winH/2-jQuery(id).height()/2);
+            jQuery(id).css('left', winW/2-jQuery(id).width()/2);
+            jQuery(id).fadeIn('fast');
+        });
+        jQuery('.window .close').click(function (e) {
+            e.preventDefault();
+            jQuery('#product_data').empty();
+            jQuery('#mask, .window').hide();
+        });
+        jQuery('#mask').click(function () {
+            jQuery(this).hide();
+            jQuery('.window').hide();
+        });
+    });
+</script>

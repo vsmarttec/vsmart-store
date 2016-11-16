@@ -1,0 +1,461 @@
+<?php
+/**
+ * aheadWorks Co.
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the EULA
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://ecommerce.aheadworks.com/AW-LICENSE.txt
+ *
+ * =================================================================
+ *                 MAGENTO EDITION USAGE NOTICE
+ * =================================================================
+ * This software is designed to work with Magento community edition and
+ * its use on an edition other than specified is prohibited. aheadWorks does not
+ * provide extension support in case of incorrect edition use.
+ * =================================================================
+ *
+ * @category   AW
+ * @package    AW_Onestepcheckout
+ * @version    1.3.1
+ * @copyright  Copyright (c) 2010-2012 aheadWorks Co. (http://www.aheadworks.com)
+ * @license    http://ecommerce.aheadworks.com/AW-LICENSE.txt
+ */
+?><div id="aw-onestepcheckout-address-billing">
+    <div class="form-list">
+        
+            <div class="aw-onestepcheckout-general-form-field">
+                <div style="clear:both;"></div>
+                <?php if(Mage::getSingleton('customer/session')->getCustomerGroupId() == 5) : ?>
+				<input type="hidden" id="billing:majema_school_id" name="billing[majema_school_id]" value="" title="Skol ID" />
+		<div class="add-info">
+			<h3>Vilken skola arbetar du på?</h3>
+			<p>Om din skola saknas eller om uppgifterna inte stämmer vänligen kontakta oss på chatten, <a href="mailto:info@majema.se">info@majema.se</a> eller <a href="tel:08 716 67 95"> 08 716 67 95</a>.</p>
+                </div>
+                <div class="aw-onestepcheckout-general-form-field" id="sclserch">
+                        <label for="schoolsearch">Sök din skola via namn, postnummer eller ort</label>
+                        <div class="input-box">
+                            <input type="text" id="schoolsearch" class="input-text required-entry" autocomplete="off" />
+                        </div>
+                </div>
+                        <div id='loadingmessage' class="field" style="display: none"></div>
+                        <div id="search-results" style="display:none;" class=""> </div>
+                    <div class="selected-school billing shipping"><br>
+					<h3><?php echo $this->__('Shipping Address') ?></h3>
+                        <strong></strong><br>
+                        <span class="streetAddress"></span><br>
+                        <span class="postalCode"></span> <span class="postalAddress"></span><br><br>
+                    </div>
+                    <div class="selected-school billing">
+                           <h3><?php echo $this->__('Billing Address') ?></h3>
+                        <strong></strong><br>
+                        <span class="streetAddress"></span><br>
+                        <span class="postalCode"></span> <span class="postalAddress"></span>
+                    </div>
+		            <div style="clear:both;"><br></div>
+			 <div class="fields">
+                        <label for="billing:majema_invoiceref">Fakturareferens</label>
+                        <div class="input-box">
+                            <input type="text" id="billing:majema_invoiceref" name="billing[majema_invoiceref]" value="<?php echo $this->escapeHtml($this->getAddress()->getMajemaInvoiceref()) ?>" title="Fakturareferens" class="input-text <?php echo $this->helper('customer/address')->getAttributeValidationClass('majema_invoiceref') ?> required-entry" />
+                        </div>
+			<p class="invoiceref"><strong><?php echo $this->__("Schools, units and municipalities require the invoice reference entered.");?></strong><?php echo $this->__("Invoice Reference can be a combination of numbers and / or letters , and is different for different schools , so it is important that you check what precisely your invoice reference are . Examples of invoice reference, was such ZZ12345 , YY123456 , 12345 , or AA123 . Important to just refnamn / No written into the field, and no other data . Are you missing invoice reference , please fill in your namn.Tack"); ?></p>
+                    </div>
+                
+                    <script>
+                    var flagAlert = false;
+                        jQuery(function ($) {
+                            
+                            $('#aw-onestepcheckout-address-shipping-wrapper').removeAttr('style');
+                         //   $('#company,#street_1,#street_2,#postcode,#city,#country,#region,#telephone,#majema_school_id').closest('li').hide();
+
+                            // Hide address fields
+                            var schools; // Variable for search results to support selecting one
+
+                            // To prevent hitting search service to hard..
+                            var searchDelayMs = 300; // ...delay time between last keystroke and search
+                            var minimumQueryLength = 3; // ...and require a minimum length for a search query
+                            var lastQuery; // ...and remember last search query to avoid searching for the same thing
+                            var currentSearch; // ...and keep track of the current request so that it can be aborted
+
+                            var searchTimeout; // Variable for search timeout to be able to cancel it on keydown
+                            var $searchResultsDiv = $('#search-results');
+
+                            // Perform a search and display the results
+                            function search(query) {
+
+                                // Abort any current request to prevent a initial slower request for a short string
+                                // to pop up a long result set, replacing a later search for a longer search string
+                                if (currentSearch) {
+                                    currentSearch.abort();
+                                }
+                //$('#search-results').css('display','none');
+                $('#loadingmessage').css('display','block');
+                // $('#loadingmessage').show();
+                                currentSearch = $.ajax({
+                                    url: '<?php echo $this->getUrl('schoolsearch/searchschool/searchschool') ?>',
+                                    dataType: 'json',
+                                    data: {q: query}
+                                }).done(function (foundSchools) {
+                                        currentSearch = null;
+                    $searchResultsDiv.hide().empty();
+                                        schools = foundSchools;
+                    $('#loadingmessage').css('display','none');
+                    if(schools=="")
+                    {
+                    $("#advice-required-entry-schoolsearch").remove();
+                    $("#schoolsearch").after("<div id='advice-required-entry-schoolsearch' class='validation-advice-schoolsearch' style='color:red;margin-bottom: 20px;'><?php echo $this->__("Oops, something seems to have gone wrong!Try to enter the schools name again and wait a few seconds while our school directory is searched.If your school does not come up - so is your school probably not in our customer and we ask you to contact us by info@majema.se,chat or phone 08-716 67 95 so we can set up your school.regards,We at Majema") ; ?></div>");
+                    return;
+                    }
+                    else
+                    {
+                    $("#advice-required-entry-schoolsearch").remove();
+                    }
+
+                                        foundSchools.each(function (school, i) {                                            
+                                            // Create elements for each search hit
+                                            var singleResult = $('<div><strong>' + school.school['name'] + '</strong><p><span class="streetAddress">' + school.shipping['street1'] + '</span><br /><span class="postalCode">' + school.shipping['postcode'] + '</span><br /><span class="postalAddress">' + school.shipping['city'] + '</span></p></div>');
+                                            $('<div>')
+                                                .data('index', i)
+                                                .addClass('wrapper')
+                                                .append(singleResult)
+                                                    /*$('<div>')
+                                                        .append($('<strong>').text(school.school['name']))
+                                                        .append($('<p>')
+                                                            .append($('<span class="streetAddress">').text(school.shipping['street1']))
+                                                            .append($('<br>'))
+                                                            .append($('<span class="postalCode">').text(school.shipping['postcode']))
+                                                            .append(' ')
+                                                            .append($('<span class="postalAddress">').text(school.shipping['city']))
+                                                        )
+                                                )*/
+                                                .appendTo($searchResultsDiv);
+                                        });
+                                        $searchResultsDiv.show()
+                                    });
+                            }
+
+                            $('#schoolsearch').on('keyup', function () {
+                                // Don't search for short strings, empty strings or same search as previous one
+                                var query = $.trim($(this).val());
+                                if (query.length < minimumQueryLength || query == lastQuery) {
+				    $searchResultsDiv.hide();
+                                    return;
+                                }
+
+                                // Remember current query
+                                lastQuery = query;
+
+                                // Cancel any search that is about to happen
+                                clearTimeout(searchTimeout);
+
+                                // Search after a short delay to prevent hammering the API unnecessarily
+                                searchTimeout = setTimeout(function () {
+                                    search(query);
+                                }, searchDelayMs);
+                            });
+
+                            // This is what happen when a search hit is clicked
+                            $('#search-results').on('click', '.wrapper', function () {
+                            $("#advice-required-entry-schoolsearch").remove();
+                                                               
+                                var school = schools[$(this).data('index')];
+                                var singleResult = $('<div><strong>' + school.school.name + '</strong><p><span class="streetAddress">' + school.shipping.street1 + '</span><br /><span class="postalCode">' + school.shipping.postcode + '</span><br /><span class="postalAddress">' + school.shipping.city + '</span></p></div>')
+                                $('#selected-address').html(singleResult);
+                                // Somehow the clicked school should be visible to the user even when the search results
+                                // is hidden. Right now this is done in the search field but there is probably a better place.
+                                $('#schoolsearch').val(school.school.name);
+                                $('#majema_school_id').val(school.school.id);
+
+                                // Set billings fields with data from selected school
+                                 $('#billing\\:majema_school_id').val(school.school.id);
+
+                                // Set billings fields with data from selected school
+                                $('#billing\\:company').val(school.billing.company);
+                                $('#billing\\:street1').val(school.billing.street1);
+                                $('#billing\\:street2').val(school.billing.street2);
+                                $('#billing\\:postcode').val(school.billing.postcode);
+                                $('#billing\\:city').val(school.billing.city);
+                                $('#billing\\:country_id').val((school.billing.country || 'SE').toUpperCase());
+
+                                // Set shipping fields with data from selected school, the name and company is also
+                                // copied since it's required and not present in the address data
+                              //  $('#shipping\\:firstname').val($('#shippin\\:firstname').val());
+                                $('#shipping\\:lastname').val($('#billing\\:lastname').val());
+                                $('#shipping\\:company').val(school.school.name);
+                                $('#shipping\\:street1').val(school.shipping.street1);
+                                $('#shipping\\:street2').val(school.shipping.street2);
+                                $('#shipping\\:postcode').val(school.shipping.postcode);
+                                $('#shipping\\:city').val(school.shipping.city);
+                                $('#shipping\\:country_id').val((school.shipping.country || 'SE').toUpperCase());
+                                // Since goods labeling is set in the shipping address panel we never ship shipping
+                                /*$('#billing-address-select option[value=""]').remove();
+                                $('#billing-address-select').append($('<option>', {
+                                        value: "",
+                                        text: school.school.name,
+                                        selected: "selected"
+                                    }));*/
+                                $('#billing\\:use_for_shipping').val('0');
+								$('#billing\\:save_in_address_book').val('0');
+
+                                /*$('company').val(school.billing.company);
+                                $('#street_1').val(school.billing.street1);
+                                $('#street_2').val(school.billing.street2);
+                                $('#zip').val(school.billing.postcode);
+                                $('#city').val(school.billing.city);
+                                $('#country').val((school.billing.country || 'SE').toUpperCase());
+                            */
+                                var $selectedSchoolBilling = $('.selected-school.billing');
+                                $selectedSchoolBilling.hide();
+                                $selectedSchoolBilling.find('strong').text(school.billing.company);
+                                var bstreet = school.billing.street1;
+                                if(school.billing.street2!="")
+                                {
+
+                                    bstreet +='<br/>'+school.billing.street2;
+                                }
+                                $selectedSchoolBilling.find('.streetAddress').html(bstreet);
+                                $selectedSchoolBilling.find('.postalCode').text(school.billing.postcode);
+                                $selectedSchoolBilling.find('.postalAddress').text(school.billing.city);
+                                $selectedSchoolBilling.show();
+                                
+                                var $selectedSchoolBillingshipping = $('.selected-school.billing.shipping');
+                                $selectedSchoolBillingshipping.hide();
+                                $selectedSchoolBillingshipping.find('strong').text(school.billing.company);
+                                $selectedSchoolBillingshipping.find('.streetAddress').html(bstreet);
+                				$selectedSchoolBillingshipping.find('.postalCode').text(school.billing.postcode);
+                                $selectedSchoolBillingshipping.find('.postalAddress').text(school.billing.city);
+                                $selectedSchoolBillingshipping.show();
+                                
+                                var $selectedSchoolShipping = $('.selected-school.shipping');
+                                $selectedSchoolShipping.hide();
+                                $selectedSchoolShipping.find('strong').text(school.school.name);
+                                var sstreet = school.shipping.street1;
+                                if(school.shipping.street2!="")
+                                {
+                    
+                                    sstreet +='<br>'+school.shipping.street2;
+                                }
+                                $selectedSchoolShipping.find('.streetAddress').html(sstreet);
+                                $selectedSchoolShipping.find('.postalCode').text(school.shipping.postcode);
+                                $selectedSchoolShipping.find('.postalAddress').text(school.shipping.city);
+                                $selectedSchoolShipping.show();
+                              //  $('#billing\\:majema_invoiceref').closest('li').show();
+
+                                $searchResultsDiv.hide();
+                            });
+                        });
+                    </script>
+                <?php endif; ?>
+            
+            </div>
+        <?php if (Mage::getSingleton('customer/session')->getCustomerGroupId() != 5): ?>
+        <div id="aw-onestepcheckout-billing-address-list"<?php if ($this->customerHasAddresses()): ?> style="overflow: hidden;"<?php endif; ?>>
+        <?php else:?>
+            <div id="aw-onestepcheckout-billing-address-list"<?php if ($this->customerHasAddresses()): ?> style="overflow: hidden; height: 0px;display:none"<?php endif; ?>>
+        <?php endif; ?>
+
+            <div class="customer-name">
+                <?php echo $this->getCustomerWidgetName()->toHtml(); ?>
+                <div style="clear:both"></div>
+            </div>
+            <?php if(!$this->isCustomerLoggedIn()): ?>
+                <?php $_dateOfBirthWidget = $this->getCustomerWidgetDateOfBirth(); ?>
+                <?php if ($_dateOfBirthWidget->isEnabled()): ?>
+                    <div class="aw-onestepcheckout-general-form-field aw-onestepcheckout-general-form-field-wide">
+                        <?php echo $_dateOfBirthWidget->toHtml() ?>
+                        <div style="clear:both;"></div>
+                    </div>
+                <?php endif; ?>
+                <?php $_genderWidget = $this->getCustomerWidgetGender(); ?>
+                <?php if ($_genderWidget->isEnabled()): ?>
+                    <div class="aw-onestepcheckout-general-form-field aw-onestepcheckout-general-form-field-wide">
+                        <?php echo $_genderWidget->toHtml() ?>
+                        <div style="clear:both;"></div>
+                    </div>
+                <?php endif ?>
+                <div class="aw-onestepcheckout-general-form-field aw-onestepcheckout-general-form-field-wide">
+                    <?php echo $this->getEnterpriseCustomerAttributesHtml(); ?>
+                </div>
+                <?php if ($this->isTaxvatEnabled()): ?>
+                    <div class="aw-onestepcheckout-general-form-field aw-onestepcheckout-general-form-field-wide">
+                        <?php echo $this->getTaxvatHtml() ?>
+                        <div style="clear:both;"></div>
+                    </div>
+                <?php endif; ?>
+            <?php endif; ?>
+            
+            <?php if (!$this->isCustomerLoggedIn()) : ?>
+                <div class="aw-onestepcheckout-general-form-field aw-onestepcheckout-general-form-field-wide">
+                <label for="billing:majema_personnummer" class="required"><em>*</em>Personnummer (19XXXXXXXXXX)</label>                    
+                                <div class="input-box">
+                                            <input type="text" id="billing:majema_personnummer" name="billing[majema_personnummer]" value="<?php echo $this->escapeHtml($this->getAddress()->getMajemaPersonnummer()) ?>" title="Personnummer" class="input-text validate-digits validate-length minimum-length-12 required-entry <?php echo $this->helper('customer/address')->getAttributeValidationClass('majema_personnummer') ?>" />
+                                </div>
+                    <div style="clear:both;"></div>
+                </div>
+                <div class="aw-onestepcheckout-general-form-field aw-onestepcheckout-general-form-field-wide">
+                    <label for="billing:email" class="required"><em>*</em><?php echo $this->__('Email') ?></label>
+                    <div class="input-box">
+                        <input type="text" name="billing[email]" id="billing:email" title="<?php echo $this->__('Email') ?>" class="input-text validate-email required-entry" value="<?php echo $this->getDataFromSession('email'); ?>" />
+                    </div>
+                    <div style="clear:both;"></div>
+                </div>
+                <div style="clear:both"></div>
+            <?php endif; ?>
+            <?php $_streetValidationClass = $this->getAttributeValidationClass('street'); ?>
+            <?php $streetValues = $this->getDataFromSession('street'); ?>
+            <div class="aw-onestepcheckout-general-form-field aw-onestepcheckout-general-form-field-wide">
+                <label for="billing:street1" class="required"><em>*</em><?php echo $this->__('Address') ?></label>
+                <div class="input-box">
+                    <input type="text" title="<?php echo $this->__('Street Address') ?>" name="billing[street][]" id="billing:street1" class="input-text <?php echo $_streetValidationClass ?>" value="<?php echo (isset($streetValues[0]))? $streetValues[0] : '' ;?>" />
+                </div>
+                <div style="clear:both;"></div>
+            </div>
+            <?php $_streetValidationClass = trim(str_replace('required-entry', '', $_streetValidationClass)); ?>
+            <?php for ($_i = 2, $_n = $this->helper('customer/address')->getStreetLines(); $_i <= $_n; $_i++): ?>
+                <div class="aw-onestepcheckout-general-form-field aw-onestepcheckout-general-form-field-wide">
+                    <div class="input-box">
+                        <input type="text" title="<?php echo $this->__('Street Address %s', $_i) ?>" name="billing[street][]" id="billing:street<?php echo $_i ?>" class="input-text <?php echo $_streetValidationClass ?>" value="<?php echo (isset($streetValues[$_i - 1]))? $streetValues[$_i - 1] : '' ;?>" />
+                    </div>
+                    <div style="clear:both;"></div>
+                </div>
+            <?php endfor; ?>
+            <?php if ($this->isVatAttributeVisible()) : ?>
+                <div class="aw-onestepcheckout-general-form-field aw-onestepcheckout-general-form-field-wide">
+                    <label for="billing:vat_id"><?php echo $this->__('VAT Number') ?></label>
+                    <div class="input-box">
+                        <input type="text" id="billing:vat_id" name="billing[vat_id]" title="<?php echo $this->__('VAT Number') ?>" class="input-text <?php echo $this->getAttributeValidationClass('vat_id'); ?>" value="<?php echo $this->getDataFromSession('vat_id'); ?>" />
+                    </div>
+                    <div style="clear:both;"></div>
+                </div>
+            <?php endif; ?>
+            <div class="aw-onestepcheckout-general-form-field aw-onestepcheckout-general-form-field-left">
+                <label for="billing:postcode" class="required"><em>*</em><?php echo $this->__('Zip/Postal Code') ?></label>
+                <div class="input-box">
+                    <input type="text" title="<?php echo $this->__('Zip/Postal Code') ?>" name="billing[postcode]" id="billing:postcode" class="input-text validate-zip-international <?php echo $this->getAttributeValidationClass('postcode') ?>" value="<?php echo $this->getDataFromSession('postcode') ?>" />
+                </div>
+                <div style="clear:both;"></div>
+            </div>
+            <div style="clear:both;"></div>
+            <div class="aw-onestepcheckout-general-form-field aw-onestepcheckout-general-form-field-wide">
+                <label for="billing:city" class="required"><em>*</em><?php echo $this->__('City') ?></label>
+                <div class="input-box">
+                    <input type="text" title="<?php echo $this->__('City') ?>" name="billing[city]" class="input-text <?php echo $this->getAttributeValidationClass('city') ?>" id="billing:city" value="<?php echo $this->getDataFromSession('city') ?>" />
+                </div>
+                <div style="clear:both;"></div>
+            </div>
+            <div class="aw-onestepcheckout-general-form-field aw-onestepcheckout-general-form-field-wide">
+                <label for="billing:country_id" class="required"><em>*</em><?php echo $this->__('Country') ?></label>
+                <div class="input-box">
+                    <?php echo $this->getCountryHtmlSelect('billing') ?>
+                </div>
+                <div style="clear:both;"></div>
+            </div>
+            <div class="aw-onestepcheckout-general-form-field aw-onestepcheckout-general-form-field-right">
+                <label for="billing:region_id" class="required"><em>*</em><?php echo $this->__('State/Province') ?></label>
+                <div class="input-box">
+                    <select id="billing:region_id" name="billing[region_id]" title="<?php echo $this->__('State/Province') ?>" class="validate-select" style="display:none;">
+                        <option value=""><?php echo $this->__('Please select region, state or province') ?></option>
+                    </select>
+                    <input type="text" id="billing:region" name="billing[region]" title="<?php echo $this->__('State/Province') ?>" class="input-text <?php echo $this->getAttributeValidationClass('region') ?>" style="display:none;" value="<?php echo $this->getDataFromSession('region') ?>" />
+                    <script type="text/javascript">
+                        //<![CDATA[
+                        $('billing:region_id').setAttribute('defaultValue',  "<?php echo $this->getDataFromSession('region_id') ?>");
+                        var billingRegionUpdater = new RegionUpdater('billing:country_id', 'billing:region', 'billing:region_id', <?php echo $this->helper('directory')->getRegionJson() ?>, undefined, 'billing:postcode');
+                        //]]>
+                    </script>
+                </div>
+                <div style="clear:both;"></div>
+            </div>
+            <div style="clear:both"></div>
+            <?php if (!$this->isCustomerLoggedIn()) : ?>
+            <div class="aw-onestepcheckout-general-form-field aw-onestepcheckout-general-form-field-left">
+                <label for="billing:telephone" class="required"><em>*</em><?php echo $this->__('Telephone') ?></label>
+                <div class="input-box">
+                    <input type="text" name="billing[telephone]" title="<?php echo $this->__('Telephone') ?>" class="input-text <?php echo $this->getAttributeValidationClass('telephone') ?>" id="billing:telephone" value="<?php echo $this->getDataFromSession('telephone'); ?>" />
+                </div>
+                <div style="clear:both;"></div>
+            </div>
+            <?php endif; ?>
+                       <?php if ($this->getConfig()->isFax()): ?>
+            <div class="aw-onestepcheckout-general-form-field aw-onestepcheckout-general-form-field-right">
+                <label for="billing:fax"><?php echo $this->__('Fax') ?></label>
+                <div class="input-box">
+                    <input type="text" name="billing[fax]" title="<?php echo $this->__('Fax') ?>" class="input-text <?php echo $this->getAttributeValidationClass('fax') ?>" id="billing:fax" value="<?php echo $this->getDataFromSession('fax'); ?>" />
+                </div>
+            </div>
+            <?php endif; ?>
+            <div style="clear:both"></div>
+            <?php if ($this->getConfig()->isCompany()): ?>
+            <div class="aw-onestepcheckout-general-form-field aw-onestepcheckout-general-form-field-wide" style="display:none;">
+                <label for="billing:company"><?php echo $this->__('Company') ?></label>
+                <div class="input-box">
+                    <input type="text" id="billing:company" name="billing[company]" title="<?php echo $this->__('Company') ?>" class="input-text <?php echo $this->getAttributeValidationClass('company') ?>" value="<?php echo $this->getDataFromSession('company'); ?>" />
+                </div>
+            </div>
+            <?php endif; ?>
+		 <?php if (Mage::getSingleton('customer/session')->getCustomerGroupId() != 5) : ?>
+            <div class="aw-onestepcheckout-general-form-field aw-onestepcheckout-general-form-field">
+                            <lable class="school_type"><?php echo $this->__('If you work in a school?'); ?> </lable> <br/>
+                            <label for="billing:majema_school_type"><?php echo $this->__('Please indicate in which grade you are working in:'); ?></label>
+                            <div class="input-box">
+                                <select name="billing[majema_school_type]" id="billing:majema_school_type">
+                                    <option value="">Välj</option>
+                                    <option value="preschool">Förskola</option>
+                                    <option value="fk">Fk</option>
+                                    <option value="1-3">1-3</option>
+                                    <option value="1-6">1-6</option>
+                                    <option value="4-6">4-6</option>
+                                    <option value="4-9">4-9</option>
+                                    <option value="6-9">6-9</option>
+                                    <option value="Fk-3">Fk-3</option>
+                                    <option value="Fk-6">Fk-6</option>
+                                    <option value="Fk-9">Fk-9</option>
+                                    <option value="Fritids">Fritids</option>
+                                    <option value="gymnasium komuvux sfi">Gymnasie/Komuvux/Sfi</option>
+                                    <option value="lärarstudent">Lärarstudent</option>
+                                    <option value="specialpedagog särskola">Specialpedagog/särskola</option>
+                                    <option value="Övrigt/All info erhålls">Övrigt/All info erhålls</option>
+                                </select>
+                                <!-- <div class="validation-advice" id="advice-required-entry-shipping:school_type" style="">Detta är ett obligatoriskt fält.</div> -->
+                            </div>
+                            <script type="text/javascript">
+                                //<![CDATA[                                
+                                $('billing:majema_school_type').setAttribute('defaultValue',  "<?php echo $this->getAddress()->getMajemaSchoolType() ?>");
+                                //]]>
+                            </script>
+                     </div>
+            <?php endif; ?>
+            <div style="clear:both;"></div>
+            <div class="aw-onestepcheckout-general-form-field aw-onestepcheckout-general-form-field-wide">
+                <?php echo $this->getEnterpriseAddressAttributesHtml(); ?>
+            </div>
+            <div style="clear:both;"></div>
+            <?php if ($this->isCustomerLoggedIn() && $this->customerHasAddresses() && Mage::getSingleton('customer/session')->getCustomerGroupId() != 5):?>
+                <div class="aw-onestepcheckout-general-form-field" style="display:none;">
+                    <div class="control">
+                        <input type="checkbox" name="billing[save_in_address_book]" value="1" title="<?php echo $this->__('Save in address book') ?>" id="billing:save_in_address_book" onchange="if(window.shipping) shipping.setSameAsBilling(false);" checked="checked" class="checkbox" />
+                        <label for="billing:save_in_address_book"><?php echo $this->__('Save in address book') ?></label>
+                    </div>
+                    <div style="clear:both;"></div>
+                </div>
+            <?php else:?>
+                <div class="no-display"><input type="hidden" name="billing[save_in_address_book]" value="1"/></div>
+            <?php endif; ?>
+	
+        </div>
+        <?php if (!$this->isUseBillingAsShipping() && $this->canShip() && Mage::getSingleton('customer/session')->getCustomerGroupId() != 5): ?>
+            <div id="aw-onestepcheckout-billing-use-for-shipping" class="aw-onestepcheckout-general-form-field">
+                <div class="control">
+                    <input type="checkbox" name="billing[use_for_shipping]" value="1" title="<?php echo $this->__('Ship to same address') ?>" id="billing:use_for_shipping" <?php if ($this->isUseBillingAsShippingChecked()):?> checked="checked"<?php endif; ?> class="checkbox" />
+                    <label for="billing:use_for_shipping"><?php echo $this->__('Ship to same address') ?></label>
+                </div>
+                <div style="clear:both;"></div>
+            </div>
+         <?php elseif(Mage::getSingleton('customer/session')->getCustomerGroupId() != 5) : ?>
+             <div class="no-display"><input type="hidden" name="billing[use_for_shipping]" value="0" /></div>
+        <?php endif; ?>
+    </div>
+    <?php echo $this->getChildHtml('extra');?>
+</div>

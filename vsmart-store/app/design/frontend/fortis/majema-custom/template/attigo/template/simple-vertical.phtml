@@ -1,0 +1,136 @@
+<?php $_helper = Mage::Helper('attigo_slider'); ?>
+<?php if ($_helper->getConfig('general/is_active')):?>
+<link
+	rel="stylesheet" type="text/css"
+	href="<?php echo $this->getSkinUrl('attigo/css/template/simple-vertical.css')?>" />
+<?php $_slider = $this->getSlider(); ?>
+<?php if($_slider->getIsPublish()==1):?>
+<div id="simple-vertical-<?php echo $_slider->getId(); ?>"
+	class="simple-vertical royalSlider rsDefault">
+	<?php $_slides =  $this->getslideCollection(); ?>
+	<?php foreach($_slides as $_slide) : ?>
+	<div class="rsContent">
+		<?php $video = "";
+		if ($_slide->getVideoUrl() !=""){
+		  $video="data-rsVideo=\"".$_slide->getVideoUrl()."\"";
+		  }
+		  ?>
+		<?php  $_slideImage = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA).$_slide->getBgimageName(); ?>
+		<?php if($_slide->getSlideLink()):?>
+			<a href="<?php echo $_slide->getSlideLink();?>"> 
+		<?php endif; ?> 
+			<img class="rsImg" src="<?php echo $_slide->getImageUrl();?>" alt="" <?php echo $video; ?> />
+		<?php if($_slide->getSlideLink()):?>
+			</a>
+		<?php endif; ?>
+		<?php  $textBlock = Mage::helper('core')->jsonDecode($_slide->getConfig()); ?>
+		<?php if(count($textBlock)<=0)
+		    {
+		    	$textBlock = array();
+		    } 
+    	 ?>
+		<?php foreach($textBlock as $_block) :  ?>
+		<?php 
+		$style=array();
+		if($_block['width']!="")
+			$style[] = 'width:'.$_block['width'];
+		if($_block['height']!="")
+			$style[] = 'height:'.$_block['height'];
+		if($_block['top']!="")
+			$style[] = 'top:'.$_block['top'];
+		if($_block['left']!="")
+			$style[] = 'left:'.$_block['left'];
+		?>
+		<div class="bContainer" style="position:absolute;<?php echo implode(";",$style); ?>">
+			<?php 
+			$effect=array();
+			if($_block['fadeEffect']!="")
+				$effect[] = 'data-fade-effect="'.$_block['fadeEffect'].'"';
+			if($_block['moveEffect']!="")
+				$effect[] = 'data-move-effect="'.$_block['moveEffect'].'"';
+			if($_block['moveOffset']!="")
+				$effect[] = 'data-move-offset="'.$_block['moveOffset'].'"';
+			if($_block['speed']!="")
+				$effect[] = 'data-speed="'.$_block['speed'].'"';
+			if($_block['easing']!="")
+				$effect[] = 'data-easing="'.$_block['easing'].'"';
+			if($_block['delay']!="")
+				$effect[] = 'data-delay="'.$_block['delay'].'"';
+			?>
+			<span class="rsABlock txtCent" <?php echo implode(" ",$effect); ?>><?php echo $_block['text']; ?>
+			</span>
+		</div>
+		<?php endforeach; ?>
+	</div>
+	<?php endforeach; ?>
+</div>
+<script>
+		
+		jq183(document).ready(function($) {
+			$('#simple-vertical-<?php echo $_slider->getId(); ?>').royalSlider({
+			
+			autoScaleSlider: <?php echo $_slider->getConfigValue('auto_scale'); ?>,
+				<?php if ($_slider->getConfigValue('scale_width')): ?>
+				autoScaleSliderWidth: <?php echo $_slider->getConfigValue('scale_width'); ?>,
+				<?php endif; ?> 
+				<?php if ($_slider->getConfigValue('scale_height')): ?>
+				autoScaleSliderHeight: <?php echo $_slider->getConfigValue('scale_height'); ?>,
+				<?php endif; ?> 
+				<?php if ($_slider->getConfigValue('slidesSpacing')): ?>
+				slidesSpacing: <?php echo $_slider->getConfigValue('slidesSpacing'); ?>,
+				<?php endif; ?>
+				autoHeight: <?php echo $_slider->getConfigValue('autoHeight'); ?>,
+				imageScaleMode: "<?php echo $_slider->getConfigValue('scalemode'); ?>",
+				imageAlignCenter: <?php echo $_slider->getConfigValue('imageAlignCenter'); ?>,
+				<?php if ($_slider->getConfigValue('imageScalePadding')): ?>
+				imageScalePadding: <?php echo $_slider->getConfigValue('imageScalePadding'); ?>,
+				<?php endif; ?>
+				<?php if ($_slider->getConfigValue('imgWidth')): ?>
+				imgWidth: <?php echo $_slider->getConfigValue('imgWidth'); ?>,
+				<?php endif; ?> 
+				<?php if ($_slider->getConfigValue('imgHeight')): ?>
+				imgHeight: <?php echo $_slider->getConfigValue('imgHeight'); ?>,
+				<?php endif; ?> 
+				fadeinLoadedSlide: <?php echo $_slider->getConfigValue('fadeinLoadedSlide'); ?>,
+				controlNavigation: 'none',
+				arrowsNav: "<?php echo $_slider->getConfigValue('arrowsNav'); ?>",
+				arrowsNavAutoHide: <?php echo $_slider->getConfigValue('nav_autohide'); ?>,
+				arrowsNavHideOnTouch: <?php echo $_slider->getConfigValue('arrowsNavHideOnTouch'); ?>,
+				keyboardNavEnabled: <?php echo $_slider->getConfigValue('keyboard_nav'); ?>,
+				navigateByClick: <?php echo $_slider->getConfigValue('nav_byclick'); ?>,
+				sliderTouch: <?php echo $_slider->getConfigValue('sliderTouch'); ?>,
+				transitionType: "<?php echo $_slider->getConfigValue('transition_type'); ?>",
+				<?php if ($_slider->getConfigValue('transition_speed')): ?>
+				transitionSpeed: <?php echo $_slider->getConfigValue('transition_speed'); ?>,
+				<?php endif; ?>
+				slidesOrientation: 'vertical',
+				<?php if ($_slider->getConfigValue('startSlideId')): ?>
+				startSlideId: <?php echo $_slider->getConfigValue('startSlideId'); ?>,
+				<?php endif; ?>
+				loop: <?php echo $_slider->getConfigValue('loop'); ?>,
+				loopRewind: <?php echo $_slider->getConfigValue('loopRewind'); ?>,
+				
+				<?php if ($_slider->getConfigValue('auto_play')): ?> 
+				 autoPlay:{
+							enabled:true,
+							stopAtAction: <?php echo $_slider->getConfigValue('stop_action'); ?>,
+							pauseOnHover: <?php echo $_slider->getConfigValue('pause_onhover'); ?>,
+							<?php if ($_slider->getConfigValue('delay')): ?>
+							delay: <?php echo $_slider->getConfigValue('delay'); ?>,
+							<?php endif;?>
+				 },
+				 <?php endif ?>
+				controlsInside: <?php echo $_slider->getConfigValue('controls_inside'); ?>,
+				fullscreen: {
+						enabled: <?php echo $_slider->getConfigValue('fullscreenenabled'); ?>,
+						keyboardNav: <?php echo $_slider->getConfigValue('fullscreenkeyboardNav'); ?>,
+						buttonFS: <?php echo $_slider->getConfigValue('buttonFS'); ?>,
+						nativeFS: <?php echo $_slider->getConfigValue('nativeFS'); ?>,
+				},
+
+   
+  });
+		});
+		</script>
+<?php endif; ?>
+<?php endif; ?>

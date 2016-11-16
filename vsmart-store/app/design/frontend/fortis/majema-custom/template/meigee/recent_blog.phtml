@@ -1,0 +1,24 @@
+<?php if($this->isBlogPostShow()){?>
+    <section  class="product-recent-blog-inner-wrapper">
+        <header>
+            <h2><?php echo $this->__('Recent Blog') ?></h2>
+        </header>
+    </section>
+    <script>
+        jQuery.getJSON('<?php echo $this->getBlogPostUrl()?>')
+            .done(function (data) {
+                var htmlString = "";
+                jQuery.each(data, function (index, entry) {
+                    htmlString += "<a href =\"" + entry.link + "\">";
+                    htmlString += "<h4>" + entry.title + "</h4>";
+                    htmlString += "<p>" + entry.content.substr(0, 100) + "...</p>";
+                    htmlString += "</a>";
+                });
+                jQuery(".product-recent-blog-inner-wrapper").append(htmlString);
+            })
+            .fail(function (jqxhr, textStatus, error) {
+                var err = textStatus + ", " + error;
+                console.log("Request Failed: " + err);
+            });
+    </script>
+<?php } ?>

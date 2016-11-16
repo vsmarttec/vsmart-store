@@ -1,0 +1,27 @@
+<?php 
+ $isAjax = Mage::app()->getRequest()->isAjax();
+$getCouponCode = Mage::getSingleton('checkout/cart')->getQuote()->getCouponCode(); ?>
+
+<form id="discount-coupon-form" action="<?php echo $this->getUrl('checkout/onepage/coupon') ?>" method="post">
+<div id="coupon-message" class=""> </div>
+<label for="coupon_code"> <?php echo $this->__('Enter your coupon code if you have one.') ?></label><br />
+
+<input id="coupon_code" class="input-text required-entry" name="coupon_code" value="<?php echo $getCouponCode; ?>"/>
+<?php if($isAjax): ?>
+<?php  if(strlen($getCouponCode)) { ?>
+
+<button type="button"  class="button btn-checkout" onclick="updateCoupon(2);" value="<?php echo $this->__('Remove Coupon')?>"><span><span><span><?php echo $this->__('Remove Coupon') ?></span></span></span></button>
+
+<?php } ?>
+
+<button type="button"  class="button btn-checkout" onclick="updateCoupon(1);" value="<?php echo $this->__('Apply Coupon')?>"><span><span><span><?php echo $this->__('Apply Coupon') ?></span></span></span></button>
+<?php else: ?>
+	<?php  if(strlen($getCouponCode)) { ?>
+
+<button type="button"  class="button btn-checkout" onclick="updateCoupon(2);" value="<?php echo $this->__('Remove Coupon')?>"><span><span><?php echo $this->__('Remove Coupon') ?></span></span></button>
+
+<?php } ?>
+
+<button type="button"  class="button btn-checkout" onclick="updateCoupon(1);" value="<?php echo $this->__('Apply Coupon')?>"><span><span><?php echo $this->__('Apply Coupon') ?></span></span></button>
+<?php endif; ?>
+</form>

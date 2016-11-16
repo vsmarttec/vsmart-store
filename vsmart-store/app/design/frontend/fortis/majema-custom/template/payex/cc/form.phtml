@@ -1,0 +1,19 @@
+<?php
+/** @var $this PayEx_Payments_Block_Form_CC */
+?>
+
+<style type="text/css">
+    #payment_form_payex_cc ul.cards-logo li {
+        float: left;
+    }
+</style>
+<fieldset <?php /* class="form-list" */ ?>>
+    <?php $_code=$this->getMethodCode() ?>
+    <ul id="payment_form_<?php echo $_code ?>" style="display:none">
+        <li>
+            <div style="float:left">
+                <?php echo Mage::helper('payex')->__('You will be redirected to <a target="_blank" href="http://www.payex.com">PayEx</a> website when you place an order.'); ?>
+            </div>
+        </li>
+    </ul>
+</fieldset>

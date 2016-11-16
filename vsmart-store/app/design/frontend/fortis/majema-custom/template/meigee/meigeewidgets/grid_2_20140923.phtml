@@ -1,0 +1,45 @@
+<?php
+    $_productCollection = $this->getMyCollection();
+    $category = $this->catName();
+    $_helper = $this->helper('catalog/output');
+    $_collectionSize = $this->productsAmount();
+    $_columnCount = 4; //$this->getColumnCount();
+    
+    $fancybox = MAGE::helper('ThemeOptions')->getThemeOptions('fancybox' );
+?>
+<?php // Grid Mode ?>
+<!--<div class="checkpoint-3-button" id="checkpoint-3"></div>-->
+<div class="home-container grid-container">
+    <div class="meigee-widget">   
+	     <div class="meigee-widget-wrapper">
+        <?php if($this->getLayout()->createBlock('cms/block')->setBlockId('grid_2_text_box')->toHtml()): ?>
+	<div class="grid-text-box grid_6 alpha">
+	    <?php echo $this->getLayout()->createBlock('cms/block')->setBlockId('grid_2_text_box')->toHtml() ?>
+	</div>
+    <?php endif; ?>
+    <div class="<?php if($this->getLayout()->createBlock('cms/block')->setBlockId('grid_2_text_box')->toHtml()){echo ' grid_6 omega';}else{echo ' no-static-block grid_12';} ?>">    
+        <ul class="products-grid widget-grid widget-grid-2">
+        <?php $i=0; foreach ($_productCollection as $_product): ?>
+			<?php $_productNameStripped = $this->stripTags($_product->getName(), null, true); ?>
+            <li class="grid_3 item <?php if($i%2){echo 'odd omega';}else{echo 'alpha';} ?>">
+				<?php echo $this->getPriceHtml($_product, true) ?>
+                <div class="product-img-box">
+                    <a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $this->stripTags($this->getImageLabel($_product, 'base_image'), null, true) ?>" class="product-image"><img src="<?php echo $this->helper('catalog/image')->init($_product, 'image')->constrainOnly(TRUE)->keepAspectRatio(TRUE)->keepFrame(FALSE)->resize(420, null); ?>" alt="<?php echo $this->stripTags($this->getImageLabel($_product, 'image'), null, true) ?>" /><?php /* Label New */ echo MAGE::helper('ThemeOptions')->getProductNewLabel($_product); ?>
+					<h3><?php echo $_product->getName(); ?></h3></a>
+					<p><?php echo $this->htmlEscape($_product->getData('mini_description')); ?></p>
+					<?php if($_product->isSaleable()): ?>
+                        <button type="button" title="<?php echo $this->__('Add to Cart') ?>" class="button btn-cart" onclick="setLocation('<?php echo $this->getAddToCartUrl($_product) ?>')"><span><span><?php echo $this->__('Add to Cart') ?></span></span></button>
+                    <?php else: ?>
+                        <p class="availability out-of-stock"><span><?php echo $this->__('Out of stock') ?></span></p>
+                    <?php endif; ?>
+                                       
+                </div>
+            </li>
+        <?php if ($i+1 == $_collectionSize ) break; $i++; endforeach ?>        
+        </ul>        
+    </div>
+	</div>
+    </div>
+</div>
+<!--<div class="checkpoint-4-button"></div>-->
+<div id="checkpoint-4"></div>
